@@ -1,0 +1,8 @@
+DagView {
+    qproperty-bg_line_color: #303030;
+    qproperty-bg_color: #a0a0b0;
+    qproperty-bg_spacing: 20;
+    qproperty-bg_thick_spacing: 5;
+}
+NodeInside {background: transparent;}
+NodeInside QLabel {color:#e0e0e0;}

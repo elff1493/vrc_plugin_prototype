@@ -1,0 +1,173 @@
+
+
+
+
+==wip==
+
+
+add nodes y
+add plugs y
+add lines y
+
+add evaluation
+add primative nodes
+add side bar and menu
+
+...
+
+add osc
+make test app --- main goal
+==would like==
+
+router and router detection
+
+===nodes==
+--time--
+
+-=math=-
+basic +-*/%
+boolain
+math eval
+math libry wrap
+
+-=logic=-
+
+if else
+when
+
+
+--loops--
+
+for loop
+list logic
+--osc--
+
+--file saving opening--
+
+--input--s
+
+--debug--
+shapes that change
+
+
+--loging/ print--
+
+-- keypress--
+global, local, moddifiters
+
+--string--
+
+--typeconveter--
+float to int eg..
+
+--sound--
+play sound
+pipe sound
+
+--colour--
+
+colour picker
+colour mix, hue saturate
+
+colour convert to diffrent types
+
+--twitch bot--
+
+==nodes==
+
+
+
+==menus==
+
+node menu
+
+programs menu
+
+curent program menu
+
+varibles menu
+
+
+== layout ==
+
+=========================== main
+
+______________________________________________
+||file|edit|view|run|__|______________| - O X|
+|¯¯¯¯¯¯¯¯|¯☐|☐|☐|☐|☐|¯¯¯¯¯¯¯¯¯|¯¯¯¯¯¯¯¯¯¯¯¯|
+|strut   |¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯| eddit      |
+|>...    |     nodes            |------------|
+|        |                      |            |
+|        |       ☐-☐-☐         |            |
+|        |                      |            |
+|        |                      |            |
+|        |                      |            |
+|--------|----------------------|------------|
+| >more  | +  +  +  +  +  +  +  +  +  +  +  ||
+| >more  | +  +  +  +  +  +  +  +  +  +  +  ||
+|        | +  +  +  +  +  +  +  +  +  +  +  ||
+|--------|¯¯|¯¯|¯¯|¯¯¯¯¯¯¯¯¯¯¯¯¯¯---underbar-|
+¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯
+
+
+============================ for nodes
+-A-| b | c | d | e | f
+---------------------
+page settings           < seting for nodes
+---------------------
+> dropdown 1            < goups of nodes
+> dropdown 2
+V dropdown 3
+ + + + + + +
+ + + + + + +
+ + + + + + +            < node slots
+ + + + + + +
+ + + + + + +
+> dropdown 4
+
+============================= varibles
+
+ a |-B-| c | d | e | f
+---------------------
+  (new var)             < new var popup
+---------------------
+> var group 1            < goups of nodes
+> var group 2
+V var group 3
+ <var1>   <var2>
+ (var1)   [var2]
+ |var1|   -var2-        < vars with diffrent type, dragable in to right type slot like in scratch
+ <var1>   <var2>
+> var group 4
+> new group (...)
+================================
+
+
+============================ progect strutture
+ a | b |-C-| d | e | f
+---------------------
+(new funtion) (new )          < seting for nodes
+---------------------
+
+
+============================= varibles|
+======================================|
+
+data_carry:
+  type:
+  inputs: {}
+  propergate: > < X =
+  nodes_visitied: = []
+  evaluate:
+
+
+
+
+
+
+
+
+
+
+
+
