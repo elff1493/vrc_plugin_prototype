@@ -38,6 +38,7 @@ class Scene(SerializeJson):
             json.dump(self.to_json(), file, indent=3)
 
     def load_file(self, file):
+        self.clear()
         with open(file, "r") as file:
             d = json.load(file)
             self.from_json(d)
@@ -91,6 +92,7 @@ class DagView(QGraphicsView):
         self.setTransformationAnchor(QGraphicsView.AnchorUnderMouse)
         self.setDragMode(QGraphicsView.RubberBandDrag)
         self.zoom = 10
+        self.setAcceptDrops(True)
 
 
     @pyqtProperty(QColor)
@@ -148,6 +150,11 @@ class DagView(QGraphicsView):
         else:
             self.setDragMode(QGraphicsView.NoDrag)
 
+    def dragEnterEvent(self, event: QtGui.QDragEnterEvent) -> None:
+        pass
+
+    def dropEvent(self, event: QtGui.QDropEvent) -> None:
+        pass
 
     def mouseReleaseEvent(self, event: QMouseEvent) -> None:
         self.setDragMode(QGraphicsView.NoDrag)
@@ -173,7 +180,7 @@ class DagView(QGraphicsView):
         if event.key() == Qt.Key_S and event.modifiers() & Qt.ControlModifier:
             self.dag_display.scene.save_to_file("test.txt")
         if event.key() == Qt.Key_L and event.modifiers() & Qt.ControlModifier:
-            self.dag_display.scene.clear()
+
             self.dag_display.scene.load_file("test.txt")
         super().keyPressEvent(event)
 
@@ -201,6 +208,7 @@ class UiScene(QGraphicsScene):
 
     def drawBackground(self, painter: QPainter, rect: QtCore.QRectF) -> None:
         super(UiScene, self).drawBackground(painter, rect)
+        return
         space = self._bg_spacing
         a1 = int(math.floor(rect.left()))
         a2 = int(math.ceil(rect.right()))

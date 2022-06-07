@@ -7,6 +7,9 @@ from PyQt5.QtGui import QFont, QColor, QPainterPath, QPen, QBrush, QTransform
 from PyQt5.QtWidgets import QGraphicsItem, QGraphicsProxyWidget, QGraphicsTextItem, QWidget, QVBoxLayout, QLabel, \
     QTextEdit, QGraphicsPathItem
 
+from plugs import Plug, UiPlug
+
+
 def make_curve(pos1, pos2, inout=0):
     s = pos1
     d = pos2
@@ -178,77 +181,6 @@ class UiLine(QGraphicsPathItem):
             self.pos2 = self.line.end.get_pos()
             self.pos2 = self.pos2.x(), self.pos2.y()
 
-class Plug:
-    IN = 0
-    OUT = 1
-    def __init__(self, node:"Node", inout=0, index=0):
-        self.node = node
-        self.inout = inout
-        self.ui_plug = None
-        self.type = None
-        self.name = "unknown socket"
-        self.anchor = 0, 0
-        self.padding = 20
-        self.index = index
-        self.line = None
-
-    def set_line(self, line=None):
-        if self.line:
-            self.line.remove()
-        self.line = line
-
-    def get_pos(self):
-        return self.ui_plug.scenePos()
-
-
-class UiPlug(QGraphicsItem):
-    def __init__(self, parent=None, plug=None , anchor=(0,0)):
-        super().__init__(parent)
-        self.radius = 6
-        self.plug = plug
-        self.bg_color = QColor("#ffff7700")
-        self.outline = QColor("#ff000000")
-        self._pen = QPen(self.outline, 1)
-        self._brush = QBrush(self.bg_color)
-        self.anchor = anchor
-        self.setPos(*anchor)
-        self.setFlag(QGraphicsItem.ItemIsSelectable)
-
-
-    def paint(self, painter: QtGui.QPainter, option, widget=None) -> None:
-        painter.setBrush(self._brush)
-        painter.setPen(self._pen)
-        painter.drawEllipse(-self.radius, -self.radius, 2*self.radius, 2*self.radius)
-
-    def boundingRect(self) -> QtCore.QRectF:
-        return QRectF(
-            -self.radius, -self.radius, 2*self.radius, 2*self.radius
-        )
-    def mousePressEvent(self, event: 'QGraphicsSceneMouseEvent') -> None:
-        super().mousePressEvent(event)
-        if event.button() != Qt.LeftButton:
-            return
-        if self.plug.line:
-            self.plug.set_line()
-        self.plug.node.scene.current_line = self
-
-    def mouseReleaseEvent(self, event: 'QGraphicsSceneMouseEvent') -> None:
-        super().mouseReleaseEvent(event)
-        l = self.plug.node.scene.current_line
-        if l:
-            self.plug.node.scene.current_line = None
-            p = event.scenePos()
-            p = p.x(), p.y()
-            p = self.scene().itemAt(*p, QTransform())
-            if type(p) is UiPlug:
-                if l.plug.inout:
-                    l = Line(self.plug.node.scene, l.plug, p.plug)
-                else:
-                    l =Line(self.plug.node.scene, p.plug, l.plug)
-                if not l.test_valid():
-                    l.remove()
-
-
 
 class NodeInside(QWidget):
     def __init__(self):
@@ -258,9 +190,13 @@ class NodeInside(QWidget):
         self.setLayout(self.layout)
 
         #test content
-        self.lable = QLabel("owo")
-        self.layout.addWidget(self.lable)
-        self.layout.addWidget(QTextEdit("bar"))
+        #self.lable = QLabel("osc")
+        #f = QFont("Arial", 40, QFont.Bold)
+        #self.lable.setFont(f)
+        #self.lable.setGeometry(0,100,100,100)
+
+        #self.layout.addWidget(self.lable)
+        #self.layout.addWidget(QTextEdit("bar"))
 
 
 class UiNodeBace(QGraphicsItem):
@@ -269,13 +205,13 @@ class UiNodeBace(QGraphicsItem):
     dark_brush = QBrush(QColor("#ff313131"))
     selected_pen = QPen(QColor("#ffa540"))
 
-    def __init__(self, node, content: NodeInside = None, parent=None):
+    def __init__(self, node,  parent=None):
         super().__init__(parent)
 
         self.node = node
-        self.content = content
+        self.content = NodeInside()
         self._text_offset = 5
-        self.width = 180
+        self.width = 112
 
         self.title_item = QGraphicsTextItem(self)
         self.title_item.node = node
@@ -285,7 +221,7 @@ class UiNodeBace(QGraphicsItem):
         self.title_item.setPos(self._text_offset, 0)
         self.title_item.setTextWidth(self.width-2*self._text_offset)
         self.title_h = 24
-        self.height = 240
+        self.height = 90
         self.edge_w = 10
 
         self.setFlag(QGraphicsItem.ItemIsMovable, True)
@@ -296,7 +232,7 @@ class UiNodeBace(QGraphicsItem):
 
         #add content
         self.proxy = QGraphicsProxyWidget(self)
-        self.content.setGeometry(self.edge_w, self.title_h + self.edge_w,
+        self.content.setGeometry(self.edge_w, self.title_h -4,#+ self.edge_w,
                                self.width-2*self.edge_w, self.height-2*self.edge_w-self.title_h)
         self.proxy.setWidget(self.content)
         self.inputs = []
@@ -307,7 +243,7 @@ class UiNodeBace(QGraphicsItem):
 
             anchor = 0, self.height - (2*self.edge_w+offset)
             offset += i.padding
-            i.ui_plug = UiPlug(self, i, anchor)
+            i.ui_plug = UiPlug(self, i, anchor)  # todo add a gui init
             self.inputs.append(i.ui_plug)
 
         offset = 0
@@ -340,7 +276,6 @@ class UiNodeBace(QGraphicsItem):
         painter.setBrush(self.defult_brush)
         painter.drawPath(outline_t)
 
-
         path_bg = QPainterPath()
         path_bg.setFillRule(Qt.WindingFill)
         path_bg.addRoundedRect(0, self.title_h, self.width, self.height - self.title_h, self.edge_w, self.edge_w)
@@ -363,24 +298,38 @@ class UiNodeBace(QGraphicsItem):
 
 
 class Node(SerializeJson):
+    full_name = "invalid node"
+    op_name = "null node"
+    inputs = ()
+    outputs = ()
+    description = "invalid node, somethings gone wrong :)"
     def __init__(self, scene, inputs=None, outputs=None, title="unknown node"):
         super(Node, self).__init__()
-        self.inputs = inputs or []
-        self.outputs = outputs or []
+        inputs = inputs or self.__class__.inputs
+        outputs = outputs or self.__class__.outputs
         self.scene = scene
         self._title = title
-        content = NodeInside()
 
         self.scene.add_node(self)
 
+        self.inputs = [Plug(self, index=index) for index, i in inputs]
+        self.outputs = [Plug(self, index=index) for index, i in outputs]
+
         self.inputs = [Plug(self, index=0), Plug(self, index=1)]
         self.outputs = [Plug(self, inout=Plug.OUT, index=0), Plug(self, inout=Plug.OUT, index=1)]
+        self.init_gui()
 
-        self.ui_node = UiNodeBace(self, content)
         self.title = title
+
+    def init_gui(self):
+
+        self.ui_node = UiNodeBace(self)
+
         self.scene.ui_scene.addItem(self.ui_node)
+
     def set_pos(self, pos):
         self.ui_node.setPos(*pos)
+
     def remove(self):
         self.scene.remove_node(self)
         for i in self.inputs + self.outputs:
@@ -405,6 +354,7 @@ class Node(SerializeJson):
             ("x", self.ui_node.scenePos().x()),
             ("y", self.ui_node.scenePos().y())
         ))
+
     def from_json(self, data, hashs=None):
         self.id = data["id"]
         hashs[self.id] = self

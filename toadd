@@ -9,6 +9,8 @@ add nodes y
 add plugs y
 add lines y
 
+make math nodes display
+add osc
 add evaluation
 add primative nodes
 add side bar and menu
@@ -17,6 +19,7 @@ add side bar and menu
 
 add osc
 make test app --- main goal
+
 ==would like==
 
 router and router detection
@@ -108,6 +111,17 @@ ______________________________________________
 |        | +  +  +  +  +  +  +  +  +  +  +  ||
 |--------|¯¯|¯¯|¯¯|¯¯¯¯¯¯¯¯¯¯¯¯¯¯---underbar-|
 ¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯
+
+========================================== node layout
+
+__________________
+|
+|
+|
+|
+|
+|
+|
 
 
 ============================ for nodes
