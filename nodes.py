@@ -7,6 +7,7 @@ from PyQt5.QtGui import QFont, QColor, QPainterPath, QPen, QBrush, QTransform
 from PyQt5.QtWidgets import QGraphicsItem, QGraphicsProxyWidget, QGraphicsTextItem, QWidget, QVBoxLayout, QLabel, \
     QTextEdit, QGraphicsPathItem
 
+from evaluator import Evaluator
 from plugs import Plug, UiPlug
 
 
@@ -303,23 +304,27 @@ class Node(SerializeJson):
     inputs = ()
     outputs = ()
     description = "invalid node, somethings gone wrong :)"
-    def __init__(self, scene, inputs=None, outputs=None, title="unknown node"):
+    e = Evaluator()
+    def __init__(self, scene, inputs=None, outputs=None, title=None):
         super(Node, self).__init__()
-        inputs = inputs or self.__class__.inputs
-        outputs = outputs or self.__class__.outputs
+        inputs = inputs or enumerate(self.__class__.inputs)
+        outputs = outputs or enumerate( self.__class__.outputs)
         self.scene = scene
-        self._title = title
+        self._title = None
 
         self.scene.add_node(self)
 
-        self.inputs = [Plug(self, index=index) for index, i in inputs]
-        self.outputs = [Plug(self, index=index) for index, i in outputs]
+        self.inputs = [Plug(self, index=index, name=i) for index, i in inputs]
+        self.outputs = [Plug(self, index=index, name=i) for index, i in outputs]
 
         self.inputs = [Plug(self, index=0), Plug(self, index=1)]
         self.outputs = [Plug(self, inout=Plug.OUT, index=0), Plug(self, inout=Plug.OUT, index=1)]
         self.init_gui()
 
-        self.title = title
+        self.title = title or self.full_name
+
+    def set_flag(self, name):
+        pass
 
     def init_gui(self):
 
@@ -329,6 +334,9 @@ class Node(SerializeJson):
 
     def set_pos(self, pos):
         self.ui_node.setPos(*pos)
+
+    def eval(self, data):
+        pass
 
     def remove(self):
         self.scene.remove_node(self)
@@ -360,3 +368,4 @@ class Node(SerializeJson):
         hashs[self.id] = self
         self.title = data["title"]
         self.ui_node.setPos(data["x"], data["y"])
+

@@ -38,6 +38,12 @@ math libry wrap
 if else
 when
 
+-=events=-
+clock events - makes event ever x ms
+on change event - event when varible chages
+-named event-
+  event - evnt event called, run this
+  spawn event - set event to be run
 
 --loops--
 

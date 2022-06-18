@@ -1,5 +1,6 @@
+from evaluator import Result
 from nodes import Node
-from moduals.moduals import Module, Result
+from moduals.moduals import Module
 
 maths = Module("maths")
 

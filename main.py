@@ -1,12 +1,13 @@
 from PyQt5 import QtGui
 from PyQt5.QtCore import Qt
 from PyQt5.QtWidgets import QApplication, QWidget, QVBoxLayout, QDockWidget, QMainWindow, QAction, QListWidget, \
-    QListWidgetItem
+    QListWidgetItem, QMenu
 
 from DagWidgets import DagView, Scene
 from nodes import Line
 
 from moduals.built_in.maths import *
+from moduals.built_in.events import *
 from moduals.moduals import Module
 
 import ctypes
@@ -28,6 +29,15 @@ class DagEditor(QWidget):
 
         self.make_debug_nodes()
 
+        self.rmenu = QMenu(self)
+        for i in Module.libraries.values():
+            m = self.rmenu.addMenu(i.name)
+            for n in i.nodes.values():
+                action = QAction(n.full_name, self)
+                action.setData(i.name + "." + n.op_name)
+                m.addAction(action)
+
+
     def make_debug_nodes(self):
         node = Node(self.scene, title="owo")
         node.set_pos((-300, 0))
@@ -37,6 +47,17 @@ class DagEditor(QWidget):
         node3.set_pos((200, 0))
         Line(self.scene, node.outputs[0], node2.inputs[1])
         Line(self.scene, node2.outputs[1], node3.inputs[1])
+
+    def contextMenuEvent(self, a0: QtGui.QContextMenuEvent) -> None:
+        action = self.rmenu.exec_(self.mapToGlobal(a0.pos()))
+        if type(action) is QAction:
+            op_code = action.data()
+            if op_code:
+                n = Module.get_node(op_code)
+                n = n(self.scene)
+                n.set_pos((0, 0)) # todo set mouse pos
+        super(DagEditor, self).contextMenuEvent(a0)
+
 
 
 class NodeLibraryList(QListWidget):
@@ -55,7 +76,6 @@ class NodeLibrary(QDockWidget):
     def __init__(self):
         super(NodeLibrary, self).__init__("node library")
         self.list = NodeLibraryList()
-        print(Module.libraries)
         for lib in Module.libraries.values():
             for i in lib.nodes.values():
                 self.list.add_item(i)
@@ -72,8 +92,7 @@ class MainWindow(QMainWindow):
         self.setWindowTitle("new window")
         self.setGeometry(1100, 200, 800, 600)
         self.layout = QVBoxLayout()
-        self.layout.setContentsMargins(0, 0, 0, 0)
-        self.setWindowIcon(QtGui.QIcon('icon.ico'))
+        self.layout.setContentsMargins(0, 0, 0, 0)        #self.setWindowIcon(QtGui.QIcon('icon.ico'))x
         self.setLayout(self.layout)
         self.editor = DagEditor(self)
         self.setCentralWidget(self.editor)

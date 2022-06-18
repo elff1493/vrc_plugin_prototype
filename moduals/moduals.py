@@ -24,8 +24,14 @@ class Module:
     def sub_modual(self, name):
         pass # todo add
 
+    @classmethod
+    def get_node(cls, full_op_code):
+        path = full_op_code.split(".")
+        root = Module.libraries
+        for i in path:
+            root = root[i]
+        print(root, full_op_code)
+        return root
 
-class Result:
-    def __init__(self, *args, exception=False, **kwargs):
-        self.output = kwargs
-        self.exception = exception
+    def __getitem__(self, item):
+        return self.nodes[item]
