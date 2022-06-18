@@ -208,7 +208,6 @@ class UiScene(QGraphicsScene):
 
     def drawBackground(self, painter: QPainter, rect: QtCore.QRectF) -> None:
         super(UiScene, self).drawBackground(painter, rect)
-        return
         space = self._bg_spacing
         a1 = int(math.floor(rect.left()))
         a2 = int(math.ceil(rect.right()))

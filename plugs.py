@@ -18,11 +18,14 @@ class Plug:
         self.anchor = 0, 0
         self.padding = 20
         self.index = index
+        self.next_plug = None
         self.line = None
 
     def set_line(self, line=None):
         if self.line:
             self.line.remove()
+            print("remove")
+        print("set new line")
         self.line = line
 
     def get_pos(self):
@@ -69,9 +72,11 @@ class UiPlug(QGraphicsItem):
             p = p.x(), p.y()
             p = self.scene().itemAt(*p, QTransform())
             if type(p) is UiPlug:
+                print("line")
                 if l.plug.inout:
                     l = nodes.Line(self.plug.node.scene, l.plug, p.plug)
                 else:
                     l = nodes.Line(self.plug.node.scene, p.plug, l.plug)
                 if not l.test_valid():
                     l.remove()
+                    print("remove line")

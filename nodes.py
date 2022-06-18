@@ -62,6 +62,8 @@ class Line(SerializeJson):
     def __init__(self, scene, start, end):
         super(Line, self).__init__()
         scene.wires.append(self)
+        start.next_plug = end
+        end.next_plug = start
         self.scene = scene
         self.start = start
         if start.line:
@@ -79,8 +81,11 @@ class Line(SerializeJson):
     def remove_from_plugs(self):
         if self.start:
             self.start.line = None
+            self.start.next_plug = None
+
         if self.end:
             self.end.line = None
+            self.end.next_plug = None
 
     def remove(self):
         self.remove_from_plugs()
@@ -297,6 +302,11 @@ class UiNodeBace(QGraphicsItem):
 
         return QtCore.QRectF(0, 0, self.width, self.height).normalized()
 
+    def mousePressEvent(self, event):
+        super(UiNodeBace, self).mousePressEvent(event)
+        if event.button() == Qt.LeftButton:
+
+            self.node.click()
 
 class Node(SerializeJson):
     full_name = "invalid node"
@@ -315,16 +325,16 @@ class Node(SerializeJson):
         self.scene.add_node(self)
 
         self.inputs = [Plug(self, index=index, name=i) for index, i in inputs]
-        self.outputs = [Plug(self, index=index, name=i) for index, i in outputs]
+        self.outputs = [Plug(self, index=index, name=i, inout=Plug.OUT) for index, i in outputs]
 
-        self.inputs = [Plug(self, index=0), Plug(self, index=1)]
-        self.outputs = [Plug(self, inout=Plug.OUT, index=0), Plug(self, inout=Plug.OUT, index=1)]
+        #self.inputs = [Plug(self, index=0), Plug(self, index=1)]
+        #self.outputs = [Plug(self, inout=Plug.OUT, index=0), Plug(self, inout=Plug.OUT, index=1)]
         self.init_gui()
 
         self.title = title or self.full_name
 
     def set_flag(self, name):
-        pass
+        print(self, name)
 
     def init_gui(self):
 
@@ -369,3 +379,5 @@ class Node(SerializeJson):
         self.title = data["title"]
         self.ui_node.setPos(data["x"], data["y"])
 
+    def click(self):
+        pass

@@ -9,6 +9,7 @@ from nodes import Line
 from moduals.built_in.maths import *
 from moduals.built_in.events import *
 from moduals.moduals import Module
+from moduals.built_in.debug import *
 
 import ctypes
 myappid = 'mycompany.myproduct.subproduct.version'  # fix for icon
@@ -27,7 +28,7 @@ class DagEditor(QWidget):
         self.layout.addWidget(self.view)
         self.setLayout(self.layout)
 
-        self.make_debug_nodes()
+        #self.make_debug_nodes()
 
         self.rmenu = QMenu(self)
         for i in Module.libraries.values():

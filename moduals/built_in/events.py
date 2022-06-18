@@ -17,6 +17,8 @@ class OnClick(Node):
         self.tick += 1
         return Result(tick=self.tick)
 
-
+    def click(self):
+        print("click")
+        self.e.eval(self)
 
 
