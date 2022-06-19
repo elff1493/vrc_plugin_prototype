@@ -45,7 +45,11 @@ class Evaluator:
 
                         call_stack.append(i.next_plug.node)
                         pointer += 1
-                    data_stack[i.next_plug.node].inputs[i.next_plug.index] = data_stack[i.node].outputs[i.name]
+                    try:
+                        data_stack[i.next_plug.node].inputs[i.next_plug.index] = data_stack[i.node].outputs[i.name]
+                    except KeyError:
+                        node.set_flag("unknown node output")
+                        return
 
             else:
                 data_node = data_stack[node]
@@ -55,13 +59,13 @@ class Evaluator:
                         node.set_flag("missing data output")
                         return
 
-                data = {}
+                args = Arguments()
                 for d, name in zip(data_node.inputs, node.inputs):
                     if d is None:
                         node.set_flag("missing data input")
                         return
-                    data[name.name] = d
-                result = node.eval(data)
+                    args[name.name] = d
+                result = node.eval(args)
                 data_node.has_eval = True
                 for k, v in result.output.items():
                     data_node.outputs[k] = v
@@ -79,9 +83,13 @@ class Evaluator:
                         pointer += 1
 
 
+class Arguments(dict):
 
+    def __getattr__(self, attr):
+        return self[attr]
 
-
+    def __setattr__(self, attr, value):
+        self[attr] = value
 
 
 class Data:
@@ -92,11 +100,17 @@ class Data:
         self.outputs = dict(self.outputs)
         self.has_eval = False
 
+
 class Result:
     def __init__(self, *args, exception=False, **kwargs):
         self.output = kwargs
         self.exception = exception
 
+    def __getattr__(self, attr):
+        return self.output[attr]
+
+    def __setattr__(self, attr, value):
+        self.output[attr] = value
 
 
 

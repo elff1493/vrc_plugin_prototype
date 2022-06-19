@@ -39,7 +39,7 @@ class Multiply(Node):
     description = "takes inputs a and b, returns the product of a and b"
     def eval(self, data):
         out = data["a"] + data["b"]
-        return Result(sum=out)
+        return Result(product=out)
 
 
 @maths.register
@@ -54,7 +54,7 @@ class Divide(Node):
             out = data["a"] / data["b"]
         except ZeroDivisionError:
             return Result(exeption=True)
-        return Result(sum=out)
+        return Result(result=out)
 
 
 @maths.register
@@ -63,9 +63,10 @@ class Exponentiation(Node):
     op_name = "pow"
     inputs = ("a", "b")
     outputs = ("result",)
+
     def eval(self, data):
         out = data["a"] ** data["b"]
-        return Result(sum=out)
+        return Result(result=out)
 
 
 @maths.register

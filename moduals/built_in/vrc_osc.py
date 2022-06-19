@@ -1,11 +1,14 @@
 from evaluator import Result
 from nodes import Node
 from moduals.moduals import Module
-osc = Module("vrc_osc")
+
 import psutil
 from os import getenv
 from pathlib import Path
 import json
+import pythonosc
+osc = Module("vrc_osc")
+
 
 class OscManager:
     def __init__(self):
@@ -19,7 +22,8 @@ class OscManager:
         pass
 
     def send(self, type, add, port, data):
-        pass
+        if (add, port) not in self.servers:
+            pythonosc.a
 
 
 class AvatarParm:
@@ -83,21 +87,23 @@ def get_avatars():
 
 @osc.register
 class SendF(Node):
-    op_name = "send"
+    full_name = "float > osc"
+    op_name = "sendf"
     inputs = ("data", "address", "port")
     outputs = ()
     description = "send float to the given address "
     osc: OscManager
     def eval(self, data):
-        try:
-            self.osc.send()
+
+        self.osc.send("f", data["address"], data["port"], data["data"])
 
         return Result()
 
 
 @osc.register
 class SendI(Node):
-    op_name = "send"
+    full_name = "int > osc"
+    op_name = "sendi"
     inputs = ("data", "address", "port")
     outputs = ()
     description = "send integer to the given address "
@@ -107,12 +113,28 @@ class SendI(Node):
         return Result()
 
 @osc.register
-class Receive(Node):
-    op_name = "receive"
+class ReceiveI(Node):
+    full_name = "osc > integer"
+    op_name = "receivei"
     inputs = ("address",)
     outputs = ("data",)
-    description = "receive osc data from default osc connection "
+    description = "receive osc int from default osc connection "
+    osc: OscManager
+    def eval(self, data):
+        out = data["a"] + data["b"]
+        return Result(data=out)
 
+    def update(self):
+        pass
+
+@osc.register
+class ReceiveF(Node):
+    full_name = "osc > float"
+    op_name = "receivef"
+    inputs = ("address",)
+    outputs = ("data",)
+    description = "receive osc float from default osc connection "
+    osc: OscManager
     def eval(self, data):
         out = data["a"] + data["b"]
         return Result(data=out)

@@ -1,15 +1,17 @@
-from PyQt5 import QtGui
-from PyQt5.QtCore import Qt
+from PyQt5 import QtGui, QtWidgets
+from PyQt5.QtCore import Qt, QSize
 from PyQt5.QtWidgets import QApplication, QWidget, QVBoxLayout, QDockWidget, QMainWindow, QAction, QListWidget, \
-    QListWidgetItem, QMenu
+    QListWidgetItem, QMenu, QTableWidget, QTableWidgetItem, QLabel
 
 from DagWidgets import DagView, Scene
+from portscan import get_scan
 from nodes import Line
 
 from moduals.built_in.maths import *
 from moduals.built_in.events import *
 from moduals.moduals import Module
 from moduals.built_in.debug import *
+from moduals.built_in.vrc_osc import *
 
 import ctypes
 myappid = 'mycompany.myproduct.subproduct.version'  # fix for icon
@@ -39,15 +41,6 @@ class DagEditor(QWidget):
                 m.addAction(action)
 
 
-    def make_debug_nodes(self):
-        node = Node(self.scene, title="owo")
-        node.set_pos((-300, 0))
-        node2 = Node(self.scene, title="node editor")
-        node2.set_pos((-50, -100))
-        node3 = Node(self.scene, title="nyan")
-        node3.set_pos((200, 0))
-        Line(self.scene, node.outputs[0], node2.inputs[1])
-        Line(self.scene, node2.outputs[1], node3.inputs[1])
 
     def contextMenuEvent(self, a0: QtGui.QContextMenuEvent) -> None:
         action = self.rmenu.exec_(self.mapToGlobal(a0.pos()))
@@ -56,7 +49,8 @@ class DagEditor(QWidget):
             if op_code:
                 n = Module.get_node(op_code)
                 n = n(self.scene)
-                n.set_pos((0, 0)) # todo set mouse pos
+                p = self.scene.ui_scene.view.mapToScene(a0.pos())
+                n.set_pos((p.x(), p.y())) # todo set mouse pos
         super(DagEditor, self).contextMenuEvent(a0)
 
 
@@ -82,6 +76,51 @@ class NodeLibrary(QDockWidget):
                 self.list.add_item(i)
         self.setWidget(self.list)
         self.setFloating(False)
+        self.setVisible(False)
+
+
+
+class PortScan(QDockWidget):
+    def __init__(self):
+        super(PortScan, self).__init__("port scan")
+        self.table = QTableWidget()
+        self.setWidget(self.table)
+        self.setFloating(False)
+        self.setVisible(False)
+        self.table.setEditTriggers(QtWidgets.QTableWidget.NoEditTriggers)
+        self.table.verticalHeader().setVisible(False)
+        self.reset()
+
+    def reset(self):
+        scan = get_scan()
+        scan = sorted(scan, key=lambda x: x.custom_icon, reverse=True)
+        self.table.setRowCount(len(scan))
+        self.table.setColumnCount(6)
+
+        header = self.table.horizontalHeader()
+        header.setSectionResizeMode(0, QtWidgets.QHeaderView.ResizeToContents)
+        #header.setSectionResizeMode(1, QtWidgets.QHeaderView.ResizeToContents)
+        header.setSectionResizeMode(2, QtWidgets.QHeaderView.ResizeToContents)
+        #header.setSectionResizeMode(3, QtWidgets.QHeaderView.ResizeToContents)
+        header.setSectionResizeMode(4, QtWidgets.QHeaderView.ResizeToContents)
+        header.setSectionResizeMode(5, QtWidgets.QHeaderView.ResizeToContents)
+
+
+        self.table.setHorizontalHeaderLabels(["app", "app name", "port", "address", "status", "is local"])
+        for i, s in enumerate(scan):
+            #icon = QTableWidgetItem()
+            #icon.setIcon(s.icon)
+            lab = QLabel();
+            lab.setPixmap(s.icon.pixmap(QSize(64, 64)))
+            lab.setAlignment(Qt.AlignHCenter)
+            self.table.setCellWidget(i, 0, lab)
+            #self.table.setItem(i, 0, icon)
+            self.table.setItem(i, 1, QTableWidgetItem(s.name))
+            self.table.setItem(i, 2, QTableWidgetItem(str(s.port)))
+            self.table.setItem(i, 3, QTableWidgetItem(s.addr))
+            self.table.setItem(i, 4, QTableWidgetItem(s.status))
+            self.table.setItem(i, 5, QTableWidgetItem("local" if s.local else "remote"))
+
 
 
 class MainWindow(QMainWindow):
@@ -97,9 +136,20 @@ class MainWindow(QMainWindow):
         self.setLayout(self.layout)
         self.editor = DagEditor(self)
         self.setCentralWidget(self.editor)
-        self.dock = [NodeLibrary()]
-        self.addDockWidget(Qt.BottomDockWidgetArea, self.dock[0])
+        self.init_docks()
         #self.layout.addWidget(self.editor)
+
+    def init_docks(self):
+        self.dock = [NodeLibrary(), PortScan()]
+        self.addDockWidget(Qt.BottomDockWidgetArea, self.dock[0])
+        a = self.dock[0].toggleViewAction()
+        a.setText("&Nodes")
+        self.window_menu.addAction(a)
+
+        self.addDockWidget(Qt.LeftDockWidgetArea, self.dock[1])
+        a = self.dock[1].toggleViewAction()
+        a.setText("&Port scanner")
+        self.window_menu.addAction(a)
 
     def menu_init(self):
         m = self.menuBar()
@@ -107,11 +157,15 @@ class MainWindow(QMainWindow):
         action = QAction("&Load", self)
         action.setShortcut("Ctrl+p")
         action.triggered.connect(self.load_test)
+        self.file_menu.addAction(action)
 
-        self.file_menu = m.addMenu("&Edit")
-        self.file_menu = m.addMenu("&Window")
-        action = QAction("&load", self)
-        action.setShortcut("Ctrl+p")
+        self.edit_menu = m.addMenu("&Edit")
+        self.window_menu = m.addMenu("&Window")
+
+        self.dock_actions_menu = []
+
+    def show_docked(self, index):
+        self.dock[index].setVisible(not self.dock[index].isVisible())
 
     def load_test(self):
         print("test")

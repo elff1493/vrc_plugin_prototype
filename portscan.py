@@ -1,20 +1,49 @@
 import psutil
 import os
 
-tmp = psutil.net_connections()
-pids = [x.pid for x in tmp]
-process = filter(lambda p: p.pid in pids, psutil.process_iter())
-data = [(i.pid, i.name(), i.exe()) for i in process]
-outp = []
-last = 0
-while data:
-    if data[0][0] - last:
-        outp.append("port " + str(last) + " to " + str(data[0][0]) + " free")
-    outp.append(data.pop(0))
-    last = outp[-1][0]
+from PyQt5.QtGui import QIcon
 
-for i in outp:
-    try:
-        print(i)
-    except:
-        pass
+import get_icon
+from dataclasses import dataclass
+
+@dataclass
+class NetworkItem:
+    custom_icon: bool
+    name: str
+    icon: QIcon
+    port: int
+    addr: str
+    local: bool
+    status: str
+
+def get_scan():
+
+
+
+    output = []
+    for i in psutil.net_connections():
+
+
+        try:
+            prosses = psutil.Process(i.pid)
+            icon, is_custom = get_icon.get_icon(prosses.exe())
+            data = NetworkItem(name=prosses.name(),
+                               icon=icon,
+                               custom_icon=is_custom,
+                               addr=i.laddr[0],
+                               port=i.laddr[1],
+                               local=bool(i.raddr),
+                               status=i.status
+                               )
+        except psutil.AccessDenied:
+            data = NetworkItem(name="unknown",
+                               custom_icon=False,
+                               icon=get_icon.get_icon("")[0],
+                               addr=i.laddr[0],
+                               port=i.laddr[1],
+                               local=bool(i.raddr),
+                               status=i.status
+                               )
+        output.append(data)
+
+    return output
