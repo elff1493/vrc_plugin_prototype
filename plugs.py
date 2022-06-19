@@ -3,7 +3,7 @@ from PyQt5.QtCore import QRectF, Qt
 from PyQt5.QtGui import QColor, QPen, QBrush, QTransform
 from PyQt5.QtWidgets import QGraphicsItem
 
-import nodes
+from wires import Line
 
 
 class Plug:
@@ -20,6 +20,7 @@ class Plug:
         self.index = index
         self.next_plug = None
         self.line = None
+        self.symbol = None
 
     def set_line(self, line=None):
         if self.line:
@@ -74,9 +75,9 @@ class UiPlug(QGraphicsItem):
             if type(p) is UiPlug:
                 print("line")
                 if l.plug.inout:
-                    l = nodes.Line(self.plug.node.scene, l.plug, p.plug)
+                    l = Line(self.plug.node.scene, l.plug, p.plug)
                 else:
-                    l = nodes.Line(self.plug.node.scene, p.plug, l.plug)
+                    l = Line(self.plug.node.scene, p.plug, l.plug)
                 if not l.test_valid():
                     l.remove()
                     print("remove line")

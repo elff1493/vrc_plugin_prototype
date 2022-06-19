@@ -5,7 +5,8 @@ from PyQt5.QtWidgets import QApplication, QWidget, QVBoxLayout, QDockWidget, QMa
 
 from DagWidgets import DagView, Scene
 from portscan import get_scan
-from nodes import Line
+
+from wires import Line
 
 from moduals.built_in.maths import *
 from moduals.built_in.events import *

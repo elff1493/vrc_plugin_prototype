@@ -4,9 +4,10 @@ from PyQt5 import QtCore, QtGui
 from PyQt5.QtCore import Qt, pyqtProperty
 from PyQt5.QtGui import QColor, QPainter, QPen, QMouseEvent, QWheelEvent, QFont
 from PyQt5.QtWidgets import QGraphicsScene, QGraphicsView, QGraphicsTextItem
-from nodes import make_curve, UiLine, SerializeJson, Node, Line
+from nodes import make_curve, SerializeJson, Node
 import json
 from collections import OrderedDict
+from wires import Line, UiLine
 
 class Scene(SerializeJson):
     def __init__(self):
