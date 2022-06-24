@@ -1,10 +1,11 @@
 import math
 
 from PyQt5 import QtGui, QtCore
-from PyQt5.QtCore import Qt, QPointF
+from PyQt5.QtCore import Qt, QPointF, QMimeData, QDataStream, QByteArray, QIODevice
 from collections import OrderedDict
-from PyQt5.QtGui import QFont, QColor, QPainterPath, QPen, QBrush
-from PyQt5.QtWidgets import QGraphicsItem, QGraphicsProxyWidget, QGraphicsTextItem, QWidget, QVBoxLayout, QLabel
+from PyQt5.QtGui import QFont, QColor, QPainterPath, QPen, QBrush, QDrag, QPixmap, QPainter
+from PyQt5.QtWidgets import QGraphicsItem, QGraphicsProxyWidget, QGraphicsTextItem, QWidget, QVBoxLayout, QLabel, \
+    QStyleOptionGraphicsItem
 
 from evaluator import Evaluator
 from plugs import Plug, UiPlug
@@ -53,10 +54,11 @@ class PlugSlot(QWidget):
         
 
 class NodeInside(QWidget):
-    def __init__(self):
+    def __init__(self, node):
         super().__init__()
         #self.setWindowFlags(QtCore.Qt.FramelessWindowHint)
         #self.setAttribute(QtCore.Qt.WA_TranslucentBackground)
+        self.node = node
         self.layout = QVBoxLayout()
         self.layout.setContentsMargins(0, 0, 0, 0)
         self.setLayout(self.layout)
@@ -72,9 +74,10 @@ class UiNodeBace(QGraphicsItem):
         super().__init__(parent)
 
         self.node = node
-        self.content = NodeInside()
+        self.content = NodeInside(self)
         self._text_offset = 5
         self.width = 112
+        self.showroom = showroom
 
         self.title_item = QGraphicsTextItem(self)
         self.title_item.node = node
@@ -91,6 +94,8 @@ class UiNodeBace(QGraphicsItem):
             self.setFlag(QGraphicsItem.ItemIsMovable, True)
             self.setFlag(QGraphicsItem.ItemIsSelectable, True)
             self.setFlag(QGraphicsItem.ItemSendsGeometryChanges, True)
+        else:
+            pass
         #self.setAcceptHoverEvents(True)
 
         #addsockets
@@ -127,7 +132,6 @@ class UiNodeBace(QGraphicsItem):
 
     def resized(self):
         p = self.proxy.boundingRect()
-        print(p)
         self.width = max(p.width(), self.width)
         self.height = p.height() + self.title_h + self.edge_w
 
@@ -171,6 +175,26 @@ class UiNodeBace(QGraphicsItem):
 
     def mousePressEvent(self, event):
         super(UiNodeBace, self).mousePressEvent(event)
+        if event.buttons() == Qt.LeftButton and self.showroom:
+            drag = QDrag(self.content)
+            mime = QMimeData()
+            data = QByteArray()
+            streem = QDataStream(data, QIODevice.WriteOnly)#todo add importan data to strem
+
+            mime.setData("application/x-node", data)
+            drag.setMimeData(mime)
+
+            image = QPixmap(self.boundingRect().size().toSize())
+            paint = QPainter()
+            paint.begin(image)
+            self.paint(paint, QStyleOptionGraphicsItem())
+            for i in self.childItems(): #todo make sure it works after the node content is redone
+                i.paint(paint, QStyleOptionGraphicsItem(), None)
+            drag.setPixmap(image)
+            drag.setHotSpot(event.pos().toPoint()) # todo make placement work with hotspot (mime data?)
+            drag.exec_(Qt.MoveAction)
+            paint.end()
+            return
         if event.button() == Qt.LeftButton:
             #todo remove, debug
             lable = QLabel("osc debug")

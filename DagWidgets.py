@@ -153,10 +153,18 @@ class DagView(QGraphicsView):
             self.setDragMode(QGraphicsView.NoDrag)
 
     def dragEnterEvent(self, event: QtGui.QDragEnterEvent) -> None:
-        pass
+        event.accept()
+
+    def dragMoveEvent(self, event: QtGui.QDragMoveEvent) -> None:
+        if event.mimeData().hasFormat("application/x-node"):
+            event.accept()
+        else:
+            event.ignore()
 
     def dropEvent(self, event: QtGui.QDropEvent) -> None:
-        pass
+        n: Node = event.source().node.node.__class__(self.dag_display.scene)
+        p = self.mapToScene(event.pos())
+        n.set_pos((p.x(), p.y()))
 
     def mouseReleaseEvent(self, event: QMouseEvent) -> None:
         self.setDragMode(QGraphicsView.NoDrag)
