@@ -2,12 +2,13 @@ import math
 
 from PyQt5 import QtCore, QtGui
 from PyQt5.QtCore import Qt, pyqtProperty
-from PyQt5.QtGui import QColor, QPainter, QPen, QMouseEvent, QWheelEvent, QFont
+from PyQt5.QtGui import QColor, QPainter, QPen, QMouseEvent, QWheelEvent, QFont, QTransform
 from PyQt5.QtWidgets import QGraphicsScene, QGraphicsView, QGraphicsTextItem
 from nodes import make_curve, SerializeJson, Node
 import json
 from collections import OrderedDict
 from wires import Line, UiLine
+
 
 class Scene(SerializeJson):
     def __init__(self):
@@ -163,13 +164,26 @@ class DagView(QGraphicsView):
             super().mouseReleaseEvent(event)
             return
 
-    def wheelEvent(self, event: QWheelEvent) -> None:
+    def wheelEvent(self, event: QWheelEvent) -> None: #todo test still works with mouse
         zoom = 1.25
-        if event.angleDelta().y() > 0:
-            pass
-        else:
+        zoom_max = 11
+        zoom_min = 0.1
+        if abs(event.angleDelta().y()) != 120:
+            self.horizontalScrollBar().setValue(self.horizontalScrollBar().value() - event.angleDelta().x())
+            self.verticalScrollBar().setValue(self.verticalScrollBar().value() - event.angleDelta().y())
+            return
+        elif event.angleDelta().y() < 0:
             zoom = 1/zoom
         self.scale(zoom, zoom)
+        if self.transform().m11() >= zoom_max:
+            self.set_scale(zoom_max)
+        elif self.transform().m11() <= zoom_min:
+            self.set_scale(zoom_min)
+
+    def set_scale(self, zoom):
+        mat = QTransform().fromScale(zoom, zoom)
+        mat = mat * QTransform.fromTranslate(self.transform().dx(), self.transform().dy())
+        self.setTransform(mat)
 
     def keyPressEvent(self, event: QtGui.QKeyEvent) -> None:
         if event.key() == Qt.Key_Delete:

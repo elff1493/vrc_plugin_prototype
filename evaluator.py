@@ -103,10 +103,11 @@ class Data:
 
 class Result:
     def __init__(self, *args, exception=False, **kwargs):
-        self.output = kwargs
-        self.exception = exception
+        self.__dict__["output"] = kwargs
+        self.__dict__["exception"] = exception
 
     def __getattr__(self, attr):
+        print(attr)
         return self.output[attr]
 
     def __setattr__(self, attr, value):

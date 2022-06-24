@@ -68,7 +68,7 @@ class UiNodeBace(QGraphicsItem):
     dark_brush = QBrush(QColor("#ff313131"))
     selected_pen = QPen(QColor("#ffa540"))
 
-    def __init__(self, node,  parent=None):
+    def __init__(self, node,  parent=None, showroom=False):
         super().__init__(parent)
 
         self.node = node
@@ -87,9 +87,10 @@ class UiNodeBace(QGraphicsItem):
         self.height = 90
         self.edge_w = 10
 
-        self.setFlag(QGraphicsItem.ItemIsMovable, True)
-        self.setFlag(QGraphicsItem.ItemIsSelectable, True)
-        self.setFlag(QGraphicsItem.ItemSendsGeometryChanges, True)
+        if not showroom:
+            self.setFlag(QGraphicsItem.ItemIsMovable, True)
+            self.setFlag(QGraphicsItem.ItemIsSelectable, True)
+            self.setFlag(QGraphicsItem.ItemSendsGeometryChanges, True)
         #self.setAcceptHoverEvents(True)
 
         #addsockets
@@ -129,7 +130,6 @@ class UiNodeBace(QGraphicsItem):
         print(p)
         self.width = max(p.width(), self.width)
         self.height = p.height() + self.title_h + self.edge_w
-
 
     def update_lines(self):
         for i in self.node.inputs + self.node.outputs:
@@ -179,6 +179,7 @@ class UiNodeBace(QGraphicsItem):
             #====
             self.node.click()
 
+
 class Node(SerializeJson):
     full_name = "invalid node"
     op_name = "null node"
@@ -186,12 +187,14 @@ class Node(SerializeJson):
     outputs = ()
     description = "invalid node, somethings gone wrong :)"
     e = Evaluator()
-    def __init__(self, scene, inputs=None, outputs=None, title=None):
+
+    def __init__(self, scene, inputs=None, outputs=None, title=None, showroom=False):
         super(Node, self).__init__()
         inputs = inputs or enumerate(self.__class__.inputs)
         outputs = outputs or enumerate( self.__class__.outputs)
         self.scene = scene
         self._title = None
+        self.showroom = showroom
 
         self.scene.add_node(self)
 
@@ -200,16 +203,16 @@ class Node(SerializeJson):
 
         #self.inputs = [Plug(self, index=0), Plug(self, index=1)]
         #self.outputs = [Plug(self, inout=Plug.OUT, index=0), Plug(self, inout=Plug.OUT, index=1)]
-        self.init_gui()
+        self.init_gui(showroom)
 
         self.title = title or self.full_name
 
     def set_flag(self, name):
         print(self, name)
 
-    def init_gui(self):
+    def init_gui(self, showroom):
 
-        self.ui_node = UiNodeBace(self)
+        self.ui_node = UiNodeBace(self, showroom=showroom)
 
         self.scene.ui_scene.addItem(self.ui_node)
 

@@ -1,12 +1,11 @@
-from PyQt5 import QtGui, QtWidgets
+from PyQt5 import QtGui, QtWidgets, QtCore
 from PyQt5.QtCore import Qt, QSize
+from PyQt5.QtGui import QColor
 from PyQt5.QtWidgets import QApplication, QWidget, QVBoxLayout, QDockWidget, QMainWindow, QAction, QListWidget, \
-    QListWidgetItem, QMenu, QTableWidget, QTableWidgetItem, QLabel
+    QListWidgetItem, QMenu, QTableWidget, QTableWidgetItem, QLabel, QTabWidget, QTabBar, QGraphicsView, QGraphicsScene
 
 from DagWidgets import DagView, Scene
 from portscan import get_scan
-
-from wires import Line
 
 from moduals.built_in.maths import *
 from moduals.built_in.events import *
@@ -17,6 +16,7 @@ from moduals.built_in.vrc_osc import *
 import ctypes
 myappid = 'mycompany.myproduct.subproduct.version'  # fix for icon
 ctypes.windll.shell32.SetCurrentProcessExplicitAppUserModelID(myappid)
+
 
 class DagEditor(QWidget):
     def __init__(self, parent):
@@ -51,31 +51,89 @@ class DagEditor(QWidget):
                 n = Module.get_node(op_code)
                 n = n(self.scene)
                 p = self.scene.ui_scene.view.mapToScene(a0.pos())
-                n.set_pos((p.x(), p.y())) # todo set mouse pos
+                n.set_pos((p.x(), p.y()))
         super(DagEditor, self).contextMenuEvent(a0)
 
 
+class PickNodeScene(QGraphicsScene):
+    def __init__(self):
+        super(PickNodeScene, self).__init__()
+        self.setBackgroundBrush(QColor("#ddddff"))
+        self.nodes = []
 
-class NodeLibraryList(QListWidget):
+    def drawBackground(self, painter: QtGui.QPainter, rect: QtCore.QRectF) -> None:
+        super(PickNodeScene, self).drawBackground(painter, rect)
+
+    def drawForeground(self, painter: QtGui.QPainter, rect: QtCore.QRectF) -> None: #todo fix jank
+
+        offset = [0, 0 + 20]
+        row_index = 0
+        row_height = 0
+
+        ypad = 10
+        abs_height = 10 + ypad
+        padding = 20
+        for i, node in enumerate(self.nodes):
+            w, h = node.ui_node.width, node.ui_node.height
+            row_height = max(h, row_height)
+
+            offset[0] += padding
+            if offset[0] + w + padding > rect.width():
+                row_index += 1
+                abs_height += row_height + ypad
+                offset = [padding, abs_height]
+                node.set_pos(offset)
+                offset[0] += w
+
+            else:
+
+                node.set_pos(offset)
+                offset[0] += w
+
+            print(offset)
+        super(PickNodeScene, self).drawForeground(painter, rect)
+
+
+class NodeLibraryList(QGraphicsView):
     def __init__(self):
         super().__init__()
-        self.setDragEnabled(True)
-        self.setFlow(QListWidget.LeftToRight)
+        self.ui_scene = PickNodeScene()
+        self.setScene(self.ui_scene)
+        self.setAlignment(Qt.AlignTop | Qt.AlignLeft)
+        #self.nodes = []
+
+        #self.setDragEnabled(True)
+        #self.setFlow(QListWidget.LeftToRight)
+    def add_node(self, node):
+        self.ui_scene.nodes.append(node)
 
     def add_item(self, node):
-        item = QListWidgetItem(node.full_name, self)
-        item.setFlags(Qt.ItemIsSelectable | Qt.ItemIsDragEnabled | Qt.ItemIsEnabled)
-        item.setData(Qt.UserRole + 1, node.op_name)
+        n = node(self, showroom=True)
+        #n.set_pos((len(self.nodes)*100, 100))
+        #item = QListWidgetItem(node.full_name, self)
+        #item.setFlags(Qt.ItemIsSelectable | Qt.ItemIsDragEnabled | Qt.ItemIsEnabled)
+        #item.setData(Qt.UserRole + 1, node.op_name)
 
 
 class NodeLibrary(QDockWidget):
     def __init__(self):
         super(NodeLibrary, self).__init__("node library")
-        self.list = NodeLibraryList()
-        for lib in Module.libraries.values():
+        self.nodes = QTabWidget()
+        self.vars = QTabWidget()
+        self.tabs = QTabWidget(self)
+        self.tabs.addTab(self.nodes, "nodes")
+        self.tabs.addTab(self.vars, "vars")
+
+
+        for name, lib in Module.libraries.items():
+            display = NodeLibraryList()
+            self.nodes.addTab(display, name)
             for i in lib.nodes.values():
-                self.list.add_item(i)
-        self.setWidget(self.list)
+                display.add_item(i)
+
+
+        self.tabs.setTabPosition(QTabWidget.West)
+        self.setWidget(self.tabs)
         self.setFloating(False)
         self.setVisible(False)
 

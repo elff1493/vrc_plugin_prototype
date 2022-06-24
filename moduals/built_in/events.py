@@ -31,13 +31,15 @@ class Tick(Node):
     outputs = ("tick",)
     description = "even node click eval the node dag (debuging node)"
     tick = 0
-    def __init__(self, *args, **kwargs):
-        super(Tick, self).__init__(*args, **kwargs)
-        timer = QTimer()
-        timer.setInterval(100)
-        timer.timeout.connect(self.spawn_event)
-        timer.start()
-        self.timer = timer
+    def __init__(self, *args,showroom=False, **kwargs):
+        super(Tick, self).__init__(*args, showroom=showroom, **kwargs)
+        self.timer = None
+        if not showroom:
+            timer = QTimer()
+            timer.setInterval(100)
+            timer.timeout.connect(self.spawn_event)
+            timer.start()
+            self.timer = timer
 
     def spawn_event(self):
         self.e.eval(self)
