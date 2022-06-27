@@ -2,7 +2,8 @@ from PyQt5 import QtGui, QtWidgets, QtCore
 from PyQt5.QtCore import Qt, QSize
 from PyQt5.QtGui import QColor
 from PyQt5.QtWidgets import QApplication, QWidget, QVBoxLayout, QDockWidget, QMainWindow, QAction, QListWidget, \
-    QListWidgetItem, QMenu, QTableWidget, QTableWidgetItem, QLabel, QTabWidget, QTabBar, QGraphicsView, QGraphicsScene
+    QListWidgetItem, QMenu, QTableWidget, QTableWidgetItem, QLabel, QTabWidget, QTabBar, QGraphicsView, QGraphicsScene, \
+    QFrame
 
 from DagWidgets import DagView, Scene
 from portscan import get_scan
@@ -12,6 +13,9 @@ from moduals.built_in.events import *
 from moduals.moduals import Module
 from moduals.built_in.debug import *
 from moduals.built_in.vrc_osc import *
+
+from symbols.symbols import Category
+from symbols.built_in.test import *
 
 import ctypes
 myappid = 'mycompany.myproduct.subproduct.version'  # fix for icon
@@ -40,8 +44,6 @@ class DagEditor(QWidget):
                 action = QAction(n.full_name, self)
                 action.setData(i.name + "." + n.op_name)
                 m.addAction(action)
-
-
 
     def contextMenuEvent(self, a0: QtGui.QContextMenuEvent) -> None:
         action = self.rmenu.exec_(self.mapToGlobal(a0.pos()))
@@ -115,6 +117,17 @@ class NodeLibraryList(QGraphicsView):
         #item.setData(Qt.UserRole + 1, node.op_name)
 
 
+class SymbolList(QFrame):
+    def __init__(self):
+        super(SymbolList, self).__init__()
+        self.layout = QVBoxLayout()
+
+    def add_item(self, item):
+        print("ITEM ADD")
+        item = item(self, "input", showroom=True)
+        self.layout.addWidget(item)
+
+
 class NodeLibrary(QDockWidget):
     def __init__(self):
         super(NodeLibrary, self).__init__("node library")
@@ -131,12 +144,17 @@ class NodeLibrary(QDockWidget):
             for i in lib.nodes.values():
                 display.add_item(i)
 
+        for name, syb in Category.group.items():
+            display = SymbolList()
+            self.vars.addTab(display, name)
+            for i in syb.symbols.values():
+                display.add_item(i)
+
 
         self.tabs.setTabPosition(QTabWidget.West)
         self.setWidget(self.tabs)
         self.setFloating(False)
         self.setVisible(False)
-
 
 
 class PortScan(QDockWidget):
@@ -158,28 +176,21 @@ class PortScan(QDockWidget):
 
         header = self.table.horizontalHeader()
         header.setSectionResizeMode(0, QtWidgets.QHeaderView.ResizeToContents)
-        #header.setSectionResizeMode(1, QtWidgets.QHeaderView.ResizeToContents)
         header.setSectionResizeMode(2, QtWidgets.QHeaderView.ResizeToContents)
-        #header.setSectionResizeMode(3, QtWidgets.QHeaderView.ResizeToContents)
         header.setSectionResizeMode(4, QtWidgets.QHeaderView.ResizeToContents)
         header.setSectionResizeMode(5, QtWidgets.QHeaderView.ResizeToContents)
-
-
         self.table.setHorizontalHeaderLabels(["app", "app name", "port", "address", "status", "is local"])
+
         for i, s in enumerate(scan):
-            #icon = QTableWidgetItem()
-            #icon.setIcon(s.icon)
-            lab = QLabel();
+            lab = QLabel()
             lab.setPixmap(s.icon.pixmap(QSize(64, 64)))
             lab.setAlignment(Qt.AlignHCenter)
             self.table.setCellWidget(i, 0, lab)
-            #self.table.setItem(i, 0, icon)
             self.table.setItem(i, 1, QTableWidgetItem(s.name))
             self.table.setItem(i, 2, QTableWidgetItem(str(s.port)))
             self.table.setItem(i, 3, QTableWidgetItem(s.addr))
             self.table.setItem(i, 4, QTableWidgetItem(s.status))
             self.table.setItem(i, 5, QTableWidgetItem("local" if s.local else "remote"))
-
 
 
 class MainWindow(QMainWindow):

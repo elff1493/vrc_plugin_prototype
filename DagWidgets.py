@@ -20,7 +20,6 @@ class Scene(SerializeJson):
         self.ui_scene = UiScene(self, parent=None)
         self.ui_scene.set_size(*self.size)
 
-
     def add_node(self, node):
         self.nodes.append(node)
 

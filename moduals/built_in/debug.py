@@ -12,11 +12,28 @@ class Print(Node):
     outputs = ()
     description = "print input to consle"
 
-
     def eval(self, data):
-
         print(data["data"])
         return Result()
+
+
+@debug.register
+class SymbolTest(Node):
+    full_name = "symbol tester"
+    op_name = "symbol_test"
+    inputs = ("data1", "data2", "data3")
+    input_slot = {
+        "data1":"test.test"
+    }
+    outputs = ("output1", "output2")
+    description = "tests symbol input"
+
+    def eval(self, data):
+        print(data.data1, data.data2, data.data3, "data inputs")
+        out = Result()
+        out.output1 = data.data1 + data.data2 + data.data3
+        out.output2 = "output2"
+        return out
 
 
 

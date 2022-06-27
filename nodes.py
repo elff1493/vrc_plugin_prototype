@@ -5,10 +5,10 @@ from PyQt5.QtCore import Qt, QPointF, QMimeData, QDataStream, QByteArray, QIODev
 from collections import OrderedDict
 from PyQt5.QtGui import QFont, QColor, QPainterPath, QPen, QBrush, QDrag, QPixmap, QPainter
 from PyQt5.QtWidgets import QGraphicsItem, QGraphicsProxyWidget, QGraphicsTextItem, QWidget, QVBoxLayout, QLabel, \
-    QStyleOptionGraphicsItem
+    QStyleOptionGraphicsItem, QFrame
 
 from evaluator import Evaluator
-from plugs import Plug, UiPlug
+from plugs import Plug, UiPlug, PlugSlot, PlugContent
 from serialize import SerializeJson
 
 
@@ -48,12 +48,8 @@ def make_curve(pos1, pos2, inout=0):
     return path
 
 
-class PlugSlot(QWidget):
-    def __init__(self):
-        super(PlugSlot, self).__init__()
-        
 
-class NodeInside(QWidget):
+class NodeInside(QFrame):
     def __init__(self, node):
         super().__init__()
         #self.setWindowFlags(QtCore.Qt.FramelessWindowHint)
@@ -61,7 +57,19 @@ class NodeInside(QWidget):
         self.node = node
         self.layout = QVBoxLayout()
         self.layout.setContentsMargins(0, 0, 0, 0)
+        self.layout.setSpacing(2)
         self.setLayout(self.layout)
+        self.slots = []
+
+        for i in node.inputs:
+            n = PlugSlot(self, i.plug.name, inout=PlugSlot.IN)
+            self.layout.addWidget(n)
+            self.slots.append(n)
+
+        for i in node.outputs:
+            n = PlugSlot(self, i.plug.name, inout=PlugSlot.OUT)
+            self.layout.addWidget(n)
+            self.slots.append(n)
 
 
 class UiNodeBace(QGraphicsItem):
@@ -74,7 +82,7 @@ class UiNodeBace(QGraphicsItem):
         super().__init__(parent)
 
         self.node = node
-        self.content = NodeInside(self)
+
         self._text_offset = 5
         self.width = 112
         self.showroom = showroom
@@ -98,15 +106,10 @@ class UiNodeBace(QGraphicsItem):
             pass
         #self.setAcceptHoverEvents(True)
 
-        #addsockets
-
-        #add content
         self.proxy = QGraphicsProxyWidget(self)
         self.proxy.geometryChanged.connect(self.resized)
         self.proxy.setFlag(QGraphicsItem.ItemSendsGeometryChanges, True)
-        self.content.setGeometry(self.edge_w, self.title_h+4,#+ self.edge_w,
-                              self.width-2*self.edge_w, self.height-2*self.edge_w-self.title_h)
-        self.proxy.setWidget(self.content)
+
         self.inputs = []
         self.outputs = []
 
@@ -125,6 +128,12 @@ class UiNodeBace(QGraphicsItem):
             offset += i.padding
             i.ui_plug = UiPlug(self, i, anchor)
             self.outputs.append(i.ui_plug)
+
+        self.content = NodeInside(self)
+        self.content.setGeometry(self.edge_w, self.title_h + 4,  # + self.edge_w,
+                                 self.width - 2 * self.edge_w, self.height - 2 * self.edge_w - self.title_h)
+        self.proxy.setWidget(self.content)
+        self.resized()
 
     def mouseMoveEvent(self, event: 'QGraphicsSceneMouseEvent') -> None:
         super().mouseMoveEvent(event)
@@ -196,19 +205,17 @@ class UiNodeBace(QGraphicsItem):
             paint.end()
             return
         if event.button() == Qt.LeftButton:
-            #todo remove, debug
-            lable = QLabel("osc debug")
-            lable.setGeometry(0, 100, 100, 100)
-            self.content.layout.addWidget(lable)
-            #====
             self.node.click()
 
 
 class Node(SerializeJson):
-    full_name = "invalid node"
-    op_name = "null node"
-    inputs = ()
-    outputs = ()
+    full_name = "invalid node" # display name of the node
+    op_name = "null_node"  # internal name of the node
+    inputs = ()  # list of name of input to the node
+    input_slot = {}  # key is name of input and value is op code of what symbol is...
+    # the defult for that imput type if key exist a defult will be provided
+    outputs = ()   # same for outputs
+    output_slots = {}
     description = "invalid node, somethings gone wrong :)"
     e = Evaluator()
 

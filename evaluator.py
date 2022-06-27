@@ -13,7 +13,6 @@ class Evaluator:
             self.eval(i)
 
     def eval(self, spawn_node):
-
         call_stack = [spawn_node]
         data_stack = {}
         pointer = 0
@@ -26,15 +25,19 @@ class Evaluator:
                 while data_stack[node].empty:
                     i = data_stack[node].empty.pop()
                     next_node = node.inputs[i[0]].next_plug
-                    if not next_node:
-                        node.set_flag("missing input")
-                        return
-                    next_node = next_node.node
-                    if next_node not in data_stack.keys():
-                        data_stack[next_node] = Data(next_node)
-                    if not data_stack[next_node].has_eval:
-                        call_stack.insert(0, next_node)
-                        pointer += 1
+                    if next_node:
+                        next_node = next_node.node
+                        if next_node not in data_stack.keys():
+                            data_stack[next_node] = Data(next_node)
+                        if not data_stack[next_node].has_eval:
+                            call_stack.insert(0, next_node)
+                            pointer += 1
+                    else:
+                        if i[1] in node.input_slot:
+                            data_stack[node].inputs[i[0]] = node.input_slot[i[1]].get_data()
+                        else:
+                            node.set_flag("missing input")
+                            return
             elif data_stack[node].has_eval:
                 #make input dict
                 call_stack.pop(0)
