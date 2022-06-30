@@ -29,9 +29,12 @@ class Category:
         path = full_op_code.split(".")
         root = Category.group
         for i in path:
+            if i not in root:
+                return None
             root = root[i]
-        print(root, full_op_code)
+        #print(root, full_op_code)
         return root
-
+    def __contains__(self, item):
+        return item in self.group
     def __getitem__(self, item):
-        return self.group[item]
+        return self.symbols[item]

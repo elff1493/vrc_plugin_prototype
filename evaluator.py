@@ -110,7 +110,6 @@ class Result:
         self.__dict__["exception"] = exception
 
     def __getattr__(self, attr):
-        print(attr)
         return self.output[attr]
 
     def __setattr__(self, attr, value):
