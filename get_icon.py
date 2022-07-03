@@ -13,6 +13,8 @@ ico_y = win32api.GetSystemMetrics(win32con.SM_CYICON)
 
 SIZE = 64
 cash = {}
+
+
 def get_icon(path):
     if path in cash:
         return cash[path]
@@ -22,7 +24,8 @@ def get_icon(path):
             large, small = win32gui.ExtractIconEx(path, 0)
             all_icons = large + small
     except pywintypes.error as e:
-        print(e, type(e), path)
+        pass
+        #print(e, type(e), path)
 
     if not all_icons:
         if "" not in cash.keys():
@@ -38,6 +41,3 @@ def get_icon(path):
 
     cash[path] = QIcon(data), True
     return cash[path]
-
-if __name__ == '__main__':
-    get_icon("D:\Program Files (x86)\osu!\osu!.exe")

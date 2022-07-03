@@ -1,11 +1,11 @@
 from PyQt5.QtWidgets import QLineEdit, QLabel
 
 from symbols.symbols import Category
-from plugs import PSymbolInput
+from plugs import SymbolInput
 test = Category("test")
 
 @test.register
-class Test(PSymbolInput):
+class Test(SymbolInput):
     full_name = "test input"
     op_name = "test"
 

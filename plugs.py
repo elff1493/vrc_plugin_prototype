@@ -46,7 +46,7 @@ class PlugSlot(QFrame):
         self.setLayout(self.layout)
         self.name = name
         self.contents = None
-        self.contents = PSymbolInput(self, name)  if not inout else PSymbolOutput(self, name)
+        self.contents = SymbolInput(self, name)  if not inout else SymbolOutput(self, name)
         self.layout.addWidget(self.contents)
         self.setAutoFillBackground(True)
         self.setAcceptDrops(True)
@@ -75,7 +75,6 @@ class PlugSlot(QFrame):
         pass
 
     def dropEvent(self, event: QtGui.QDropEvent) -> None:
-        print("dopr")
         self.contents.setParent(None)
         self.contents: PlugContent = event.source().__class__(self, self.name)
         self.layout.addWidget(self.contents)
@@ -145,15 +144,7 @@ class SymbolInput(PlugContent):
     pass
 
 
-class PSymbolInput(SymbolInput):
-    pass
-
-
 class SymbolOutput(PlugContent):
-    pass
-
-
-class PSymbolOutput(PlugContent):
     pass
 
 

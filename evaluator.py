@@ -12,10 +12,42 @@ class Evaluator:
         for i in self.spawn:
             self.eval(i)
 
+    def _eval_node(self, node, data_stack, call_stack):
+
+        data_node = data_stack[node]
+        for n in node.outputs:
+            if n.node is None:
+                node.set_flag("missing data output")
+                return
+
+        args = Arguments()
+        for d, name in zip(data_node.inputs, node.inputs):
+            if d is None:
+                node.set_flag("missing data input")
+                return
+            args[name.name] = d
+        result = node.eval(args)
+        data_node.has_eval = True
+        for k, v in result.output.items():
+            data_node.outputs[k] = v
+        for i in node.outputs:
+            if not i.next_plug:
+                node.set_flag("missing output")
+                # return
+            else:
+                next_node = i.next_plug.node
+                if type(next_node) is None:
+                    node.set_flag("missing output")
+                    # return
+                if next_node not in data_stack.keys():  # probs shouldt use a dict, todo work out smarter way
+                    data_stack[next_node] = Data(next_node)
+                    call_stack.append(next_node)
+                    #pointer += 1
+
     def eval(self, spawn_node):
         call_stack = [spawn_node]
         data_stack = {}
-        pointer = 0
+        #pointer = 0
         while call_stack:
             node = call_stack[0]
             if node not in data_stack.keys(): # probs shouldt use a dict, todo work out smarter way
@@ -31,7 +63,7 @@ class Evaluator:
                             data_stack[next_node] = Data(next_node)
                         if not data_stack[next_node].has_eval:
                             call_stack.insert(0, next_node)
-                            pointer += 1
+                            #pointer += 1
                     else:
                         if i[1].name in node.input_slots:
                             data_stack[node].inputs[i[0]] = node.inputs[i[0]].ui_symbol_slot.contents.get_data()
@@ -41,14 +73,14 @@ class Evaluator:
             elif data_stack[node].has_eval:
                 #make input dict
                 call_stack.pop(0)
-                pointer -= 1
+                #pointer -= 1
                 for i in node.outputs:
                     if i.next_plug:
                         if i.next_plug.node not in data_stack:
                             data_stack[i.next_plug.node] = Data(node)
 
                             call_stack.append(i.next_plug.node)
-                            pointer += 1
+                            #pointer += 1
                         try:
                             data_stack[i.next_plug.node].inputs[i.next_plug.index] = data_stack[i.node].outputs[i.name]
                         except KeyError:
@@ -56,36 +88,7 @@ class Evaluator:
                             return
 
             else:
-                data_node = data_stack[node]
-
-                for n in node.outputs:
-                    if n.node is None:
-                        node.set_flag("missing data output")
-                        return
-
-                args = Arguments()
-                for d, name in zip(data_node.inputs, node.inputs):
-                    if d is None:
-                        node.set_flag("missing data input")
-                        return
-                    args[name.name] = d
-                result = node.eval(args)
-                data_node.has_eval = True
-                for k, v in result.output.items():
-                    data_node.outputs[k] = v
-                for i in node.outputs:
-                    if not i.next_plug:
-                        node.set_flag("missing output")
-                        #return
-                    else:
-                        next_node = i.next_plug.node
-                        if type(next_node) is None:
-                            node.set_flag("missing output")
-                            #return
-                        if next_node not in data_stack.keys():  # probs shouldt use a dict, todo work out smarter way
-                            data_stack[next_node] = Data(next_node)
-                            call_stack.append(next_node)
-                            pointer += 1
+                self._eval_node(node, data_stack, call_stack)
 
 
 class Arguments(dict):
