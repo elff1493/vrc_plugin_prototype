@@ -25,7 +25,7 @@ class Evaluator:
                 while data_stack[node].empty:
                     i = data_stack[node].empty.pop()
                     next_node = node.inputs[i[0]].next_plug
-                    if next_node:
+                    if next_node and not i[1].name in node.input_slots:
                         next_node = next_node.node
                         if next_node not in data_stack.keys():
                             data_stack[next_node] = Data(next_node)
@@ -33,8 +33,8 @@ class Evaluator:
                             call_stack.insert(0, next_node)
                             pointer += 1
                     else:
-                        if i[1] in node.input_slot:
-                            data_stack[node].inputs[i[0]] = node.input_slot[i[1]].get_data()
+                        if i[1].name in node.input_slots:
+                            data_stack[node].inputs[i[0]] = node.inputs[i[0]].ui_symbol_slot.contents.get_data()
                         else:
                             node.set_flag("missing input")
                             return
@@ -43,16 +43,17 @@ class Evaluator:
                 call_stack.pop(0)
                 pointer -= 1
                 for i in node.outputs:
-                    if i.next_plug.node not in data_stack:
-                        data_stack[i.next_plug.node] = Data(node)
+                    if i.next_plug:
+                        if i.next_plug.node not in data_stack:
+                            data_stack[i.next_plug.node] = Data(node)
 
-                        call_stack.append(i.next_plug.node)
-                        pointer += 1
-                    try:
-                        data_stack[i.next_plug.node].inputs[i.next_plug.index] = data_stack[i.node].outputs[i.name]
-                    except KeyError:
-                        node.set_flag("unknown node output")
-                        return
+                            call_stack.append(i.next_plug.node)
+                            pointer += 1
+                        try:
+                            data_stack[i.next_plug.node].inputs[i.next_plug.index] = data_stack[i.node].outputs[i.name]
+                        except KeyError:
+                            node.set_flag("unknown node output")
+                            return
 
             else:
                 data_node = data_stack[node]
@@ -75,15 +76,16 @@ class Evaluator:
                 for i in node.outputs:
                     if not i.next_plug:
                         node.set_flag("missing output")
-                        return
-                    next_node = i.next_plug.node
-                    if type(next_node) is None:
-                        node.set_flag("missing output")
-                        return
-                    if next_node not in data_stack.keys():  # probs shouldt use a dict, todo work out smarter way
-                        data_stack[next_node] = Data(next_node)
-                        call_stack.append(next_node)
-                        pointer += 1
+                        #return
+                    else:
+                        next_node = i.next_plug.node
+                        if type(next_node) is None:
+                            node.set_flag("missing output")
+                            #return
+                        if next_node not in data_stack.keys():  # probs shouldt use a dict, todo work out smarter way
+                            data_stack[next_node] = Data(next_node)
+                            call_stack.append(next_node)
+                            pointer += 1
 
 
 class Arguments(dict):
@@ -110,7 +112,6 @@ class Result:
         self.__dict__["exception"] = exception
 
     def __getattr__(self, attr):
-        print(attr)
         return self.output[attr]
 
     def __setattr__(self, attr, value):

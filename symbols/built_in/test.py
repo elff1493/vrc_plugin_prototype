@@ -1,4 +1,4 @@
-from PyQt5.QtWidgets import QLineEdit
+from PyQt5.QtWidgets import QLineEdit, QLabel
 
 from symbols.symbols import Category
 from plugs import PSymbolInput
@@ -8,9 +8,12 @@ test = Category("test")
 class Test(PSymbolInput):
     full_name = "test input"
     op_name = "test"
+
     def init(self):
         self.text = QLineEdit()
-        return self.text
+        lable = QLabel()
+        lable.setText("banaa")
+        return self.text, lable
 
     def get_data(self):
         return self.text.text()

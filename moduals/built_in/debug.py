@@ -35,6 +35,19 @@ class SymbolTest(Node):
         out.output2 = "output2"
         return out
 
+@debug.register
+class SymbolToNode(Node):
+    full_name = "symbol to node"
+    op_name = "symbol_to_node"
+    inputs = ("symbol",)
+    input_slots = {
+        "symbol":"test.test"
+    }
+    outputs = ("output",)
+    description = "tests geting sybol data"
+
+    def eval(self, data):
+        return Result(output=data.symbol)
 
 
 

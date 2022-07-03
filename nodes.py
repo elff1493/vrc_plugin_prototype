@@ -4,12 +4,13 @@ from PyQt5 import QtGui, QtCore
 from PyQt5.QtCore import Qt, QPointF, QMimeData, QDataStream, QByteArray, QIODevice
 from collections import OrderedDict
 from PyQt5.QtGui import QFont, QColor, QPainterPath, QPen, QBrush, QDrag, QPixmap, QPainter
-from PyQt5.QtWidgets import QGraphicsItem, QGraphicsProxyWidget, QGraphicsTextItem, QWidget, QVBoxLayout, QLabel, \
+from PyQt5.QtWidgets import QGraphicsItem, QGraphicsProxyWidget, QGraphicsTextItem,  QVBoxLayout,  \
     QStyleOptionGraphicsItem, QFrame
 
 from evaluator import Evaluator
-from plugs import Plug, UiPlug, PlugSlot, PlugContent
+from plugs import Plug, UiPlug, PlugSlot
 from serialize import SerializeJson
+from symbols.symbols import Category
 
 
 def make_curve(pos1, pos2, inout=0):
@@ -48,7 +49,6 @@ def make_curve(pos1, pos2, inout=0):
     return path
 
 
-
 class NodeInside(QFrame):
     def __init__(self, node):
         super().__init__()
@@ -61,13 +61,27 @@ class NodeInside(QFrame):
         self.setLayout(self.layout)
         self.slots = []
 
+        slot = node.node.__class__.input_slots
         for i in node.inputs:
             n = PlugSlot(self, i.plug.name, inout=PlugSlot.IN)
+            i.plug.ui_symbol_slot = n
+            if i.plug.name in slot:
+                sym = Category.get_symbol(slot[i.plug.name])
+                if sym:
+                    n.contents.setParent(None)
+                    n.contents = sym(n, i.plug.name)
             self.layout.addWidget(n)
             self.slots.append(n)
 
+        slot = node.node.__class__.output_slots
         for i in node.outputs:
             n = PlugSlot(self, i.plug.name, inout=PlugSlot.OUT)
+            i.plug.ui_symbol_slot = n
+            if i.plug.name in slot:
+                sym = Category.get_symbol(i.plug.op_code)
+                if sym:
+                    n.contents.setParent(None)
+                    n.contents = sym(n, i.plug.name)
             self.layout.addWidget(n)
             self.slots.append(n)
 
@@ -93,7 +107,8 @@ class UiNodeBace(QGraphicsItem):
         self.title_item.setDefaultTextColor(QColor("white"))
         self.title_item.setPlainText(self.node.title)
         self.title_item.setPos(self._text_offset, 0)
-        self.title_item.setTextWidth(self.width-2*self._text_offset)
+        #self.title_item.setTextWidth(self.width-2*self._text_offset)
+        self.width = max((self.width, self.title_item.boundingRect().width() + self._text_offset*2))
         self.title_h = 24
         self.height = 90
         self.edge_w = 10
@@ -141,7 +156,8 @@ class UiNodeBace(QGraphicsItem):
 
     def resized(self):
         p = self.proxy.boundingRect()
-        self.width = max(p.width(), self.width)
+        print(p.width(), self.title_item.boundingRect().width())
+        self.width = max((p.width(), self.title_item.boundingRect().width() + 2*self._text_offset)) + 2*self.edge_w
         self.height = p.height() + self.title_h + self.edge_w
 
     def update_lines(self):
@@ -212,7 +228,7 @@ class Node(SerializeJson):
     full_name = "invalid node" # display name of the node
     op_name = "null_node"  # internal name of the node
     inputs = ()  # list of name of input to the node
-    input_slot = {}  # key is name of input and value is op code of what symbol is...
+    input_slots = {}  # key is name of input and value is op code of what symbol is...
     # the defult for that imput type if key exist a defult will be provided
     outputs = ()   # same for outputs
     output_slots = {}
@@ -222,7 +238,7 @@ class Node(SerializeJson):
     def __init__(self, scene, inputs=None, outputs=None, title=None, showroom=False):
         super(Node, self).__init__()
         inputs = inputs or enumerate(self.__class__.inputs)
-        outputs = outputs or enumerate( self.__class__.outputs)
+        outputs = outputs or enumerate(self.__class__.outputs)
         self.scene = scene
         self._title = None
         self.showroom = showroom
@@ -232,8 +248,6 @@ class Node(SerializeJson):
         self.inputs = [Plug(self, index=index, name=i) for index, i in inputs]
         self.outputs = [Plug(self, index=index, name=i, inout=Plug.OUT) for index, i in outputs]
 
-        #self.inputs = [Plug(self, index=0), Plug(self, index=1)]
-        #self.outputs = [Plug(self, inout=Plug.OUT, index=0), Plug(self, inout=Plug.OUT, index=1)]
         self.init_gui(showroom)
 
         self.title = title or self.full_name

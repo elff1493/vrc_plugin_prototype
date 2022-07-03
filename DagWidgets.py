@@ -129,6 +129,8 @@ class DagView(QGraphicsView):
     def bg_thick_spacing(self, x):
         self.dag_display._bg_thicc_spacing = x
 
+
+
     def mousePressEvent(self, event):
 
         if event.button() != Qt.MiddleButton:
@@ -145,25 +147,34 @@ class DagView(QGraphicsView):
 
     def l_mouse_press(self, event):
         item = self.itemAt(event.pos())
-        print(item)
         if event.modifiers() & Qt.ControlModifier:
             self.setDragMode(QGraphicsView.RubberBandDrag)
         else:
             self.setDragMode(QGraphicsView.NoDrag)
 
     def dragEnterEvent(self, event: QtGui.QDragEnterEvent) -> None:
-        event.accept()
+        if event.mimeData().hasFormat("application/x-node"):
+            event.accept()
+        else:
+            event.ignore()
+            super(DagView, self).dragEnterEvent(event)
 
     def dragMoveEvent(self, event: QtGui.QDragMoveEvent) -> None:
         if event.mimeData().hasFormat("application/x-node"):
             event.accept()
         else:
             event.ignore()
+            super(DagView, self).dragMoveEvent(event)
 
     def dropEvent(self, event: QtGui.QDropEvent) -> None:
-        n: Node = event.source().node.node.__class__(self.dag_display.scene)
-        p = self.mapToScene(event.pos())
-        n.set_pos((p.x(), p.y()))
+        if event.mimeData().hasFormat("application/x-node"):
+            n: Node = event.source().node.node.__class__(self.dag_display.scene)
+            p = self.mapToScene(event.pos())
+            n.set_pos((p.x(), p.y()))
+        else:
+            event.ignore()
+            super(DagView, self).dropEvent(event)
+
 
     def mouseReleaseEvent(self, event: QMouseEvent) -> None:
         self.setDragMode(QGraphicsView.NoDrag)
@@ -258,8 +269,31 @@ class UiScene(QGraphicsScene):
             painter.setPen(pen)
             painter.drawPath(make_curve(p, self.m_pos))
 
+    def dragEnterEvent(self, e):
+        #e.accept()
+        e.ignore()
+        super(UiScene, self).dragEnterEvent(e)
+        item = self.itemAt(e.scenePos(), self.views()[0].transform())
+        print("item enter,", item)
+        
+
+    def dropEvent(self, e):
+        # find item at these coordinates
+        e.ignore()
+        super(UiScene, self).dropEvent(e)
+        item = self.itemAt(e.scenePos(), self.views()[0].transform())
+
+        print("item drop,", item)
+
+    def dragMoveEvent(self, e):
+        e.ignore()
+        super(UiScene, self).dragMoveEvent(e)
+        item = self.itemAt(e.scenePos(), self.views()[0].transform())
+        #e.accept()
+
     def mouseMoveEvent(self, event: 'QGraphicsSceneMouseEvent') -> None:
         super().mousePressEvent(event)
         self.update()
 
         self.m_pos = event.scenePos().x(), event.scenePos().y()
+

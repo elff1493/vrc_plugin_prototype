@@ -26,8 +26,8 @@ class Subtract(Node):
     outputs = ("difference", )
     description = "takes inputs a and b and returns the difference (a - b) "
     def eval(self, data):
-        out = data["a"] - data["b"]
-        return Result(sum=out)
+        out = data.a - data.b
+        return Result(difference=out)
 
 
 @maths.register

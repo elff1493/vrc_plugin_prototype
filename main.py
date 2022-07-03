@@ -123,7 +123,6 @@ class SymbolList(QFrame):
         self.layout = QVBoxLayout()
 
     def add_item(self, item):
-        print("ITEM ADD")
         item = item(self, "input", showroom=True)
         self.layout.addWidget(item)
 
@@ -238,7 +237,6 @@ class MainWindow(QMainWindow):
         self.dock[index].setVisible(not self.dock[index].isVisible())
 
     def load_test(self):
-        print("test")
         self.editor.scene.load_file("test.txt")
 
 

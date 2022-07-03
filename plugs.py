@@ -1,7 +1,7 @@
 from PyQt5 import QtGui, QtCore
 from PyQt5.QtCore import QRectF, Qt, QMimeData, QByteArray, QDataStream, QIODevice, pyqtProperty
-from PyQt5.QtGui import QColor, QPen, QBrush, QTransform, QDrag, QPixmap, QPainter
-from PyQt5.QtWidgets import QGraphicsItem, QWidget, QStyleOptionGraphicsItem, QLabel, QVBoxLayout, QFrame
+from PyQt5.QtGui import QColor, QPen, QBrush, QTransform, QDrag
+from PyQt5.QtWidgets import QGraphicsItem, QLabel, QVBoxLayout, QFrame
 
 from wires import Line
 
@@ -13,6 +13,7 @@ class Plug:
         self.node = node
         self.inout = inout
         self.ui_plug = None
+        self.ui_symbol_slot = None
         self.type = _type
         self.name = name
         self.anchor = 0, 0
@@ -39,12 +40,16 @@ class PlugSlot(QFrame):
         self.layout = QVBoxLayout()
         self.layout.setContentsMargins(0, 0, 0, 0)
         self.layout.setSpacing(0)
+        self.layout.stretch(10)
         self._inout = 0
         self.inout = inout
         self.setLayout(self.layout)
+        self.name = name
+        self.contents = None
         self.contents = PSymbolInput(self, name)  if not inout else PSymbolOutput(self, name)
         self.layout.addWidget(self.contents)
         self.setAutoFillBackground(True)
+        self.setAcceptDrops(True)
         #self.show()
 
     @pyqtProperty(int)
@@ -57,6 +62,8 @@ class PlugSlot(QFrame):
 
     def dragEnterEvent(self, event: QtGui.QDragEnterEvent) -> None:
         event.accept()
+        super(PlugSlot, self).dragEnterEvent(event)
+        print("drag entert")
 
     def dragMoveEvent(self, event: QtGui.QDragMoveEvent) -> None:
         if event.mimeData().hasFormat("application/x-plug-content"):
@@ -68,14 +75,18 @@ class PlugSlot(QFrame):
         pass
 
     def dropEvent(self, event: QtGui.QDropEvent) -> None:
-        n: PlugContent = event.source().__class__()
+        print("dopr")
+        self.contents.setParent(None)
+        self.contents: PlugContent = event.source().__class__(self, self.name)
+        self.layout.addWidget(self.contents)
         #p = self.mapToScene(event.pos())
         #n.set_pos((p.x(), p.y()))
 
 
-class PlugContent(QWidget):
+class PlugContent(QFrame):
     full_name = ""
     op_name = ""
+
     def __init__(self, parent, name, showroom=False):
         super(PlugContent, self).__init__(parent=parent)
         self.name = name
@@ -85,7 +96,16 @@ class PlugContent(QWidget):
         self.layout.setContentsMargins(0, 0, 0, 0)
         self.setLayout(self.layout)
         w = self.init()
-        self.layout.addWidget(w)
+        self.setAcceptDrops(True)
+
+        if type(w) is not tuple:
+            w = (w,)
+        for i in w:
+            self.layout.addWidget(i)
+        if showroom:
+            print("transparent")
+            self.setMouseTracking(True)
+            #self.setAttribute(Qt.WA_TransparentForMouseEvents, True)
 
     def init(self):
         lable = QLabel(self.name)
@@ -115,7 +135,8 @@ class PlugContent(QWidget):
             #for i in self.childItems():
             #    i.paint(paint, QStyleOptionGraphicsItem(), None)
             #drag.setPixmap(image)
-            drag.setHotSpot(event.pos().toPoint())
+
+            drag.setHotSpot(event.pos())
             drag.exec_(Qt.MoveAction)
             #paint.end()
 
@@ -130,6 +151,7 @@ class PSymbolInput(SymbolInput):
 
 class SymbolOutput(PlugContent):
     pass
+
 
 class PSymbolOutput(PlugContent):
     pass
@@ -175,7 +197,6 @@ class UiPlug(QGraphicsItem):
             p = p.x(), p.y()
             p = self.scene().itemAt(*p, QTransform())
             if type(p) is UiPlug:
-                print("line")
                 if l.plug.inout:
                     l = Line(self.plug.node.scene, l.plug, p.plug)
                 else:
