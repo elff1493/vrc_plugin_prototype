@@ -16,6 +16,11 @@ class Module:
 
     def register(self, node):
         """decrator for class register"""
+        if type(node.inputs) is not tuple:
+            raise TypeError("node.inputs is not tuple. try ('name',) instead of ('name')")
+        if type(node.outputs) is not tuple:
+            raise TypeError("")
+
         if node in self.nodes.values() or node.op_name in self.nodes:
             raise DuplicateNodeError()
         self.nodes[node.op_name] = node

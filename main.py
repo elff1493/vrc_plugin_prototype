@@ -9,6 +9,7 @@ import symbols.built_in as node_symbols
 
 from util_docks.node_libray import NodeLibrary
 from util_docks.port_scan import PortScan
+from util_docks.console import Console
 
 
 
@@ -65,7 +66,7 @@ class MainWindow(QMainWindow):
         #self.layout.addWidget(self.editor)
 
     def init_docks(self):
-        self.dock = [NodeLibrary(), PortScan()]
+        self.dock = [NodeLibrary(), PortScan(), Console()]
         self.addDockWidget(Qt.BottomDockWidgetArea, self.dock[0])
         a = self.dock[0].toggleViewAction()
         a.setText("&Nodes")
@@ -75,6 +76,11 @@ class MainWindow(QMainWindow):
         a = self.dock[1].toggleViewAction()
         a.setText("&Port scanner")
         self.window_menu.addAction(a)
+
+        self.addDockWidget(Qt.RightDockWidgetArea, self.dock[2])
+        a = self.dock[2].toggleViewAction()
+        a.setText("&Console")
+        self.window_menu.addAction(a) # todo make loop
 
     def menu_init(self):
         m = self.menuBar()

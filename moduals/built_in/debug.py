@@ -1,6 +1,7 @@
 from nodes import Node
 from moduals.moduals import Module
 from evaluator import Result
+from util_docks.console import Console
 debug = Module("debug")
 
 
@@ -11,9 +12,11 @@ class Print(Node):
     inputs = ("data",)
     outputs = ()
     description = "print input to consle"
+    print_window: Console = Console
 
     def eval(self, data):
         print(data["data"])
+        self.print_window.instance().print(data.data)
         return Result()
 
 
