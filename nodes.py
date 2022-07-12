@@ -70,6 +70,10 @@ class NodeInside(QFrame):
                 if sym:
                     n.contents.setParent(None)
                     n.contents = sym(n, i.plug.name)
+                    if not (sym.default is None):
+                        n.contents.set_data(sym.default)
+                else:
+                    print("symbol not found")
             self.layout.addWidget(n)
             self.slots.append(n)
 
@@ -225,11 +229,11 @@ class UiNodeBace(QGraphicsItem):
 
 
 class Node(SerializeJson):
-    full_name = "invalid node" # display name of the node
+    full_name = "invalid node"  # display name of the node
     op_name = "null_node"  # internal name of the node
     inputs = ()  # list of name of input to the node
     input_slots = {}  # key is name of input and value is op code of what symbol is...
-    # the defult for that imput type if key exist a defult will be provided
+    # the default for that input type if key exist a default will be provided
     outputs = ()   # same for outputs
     output_slots = {}
     description = "invalid node, somethings gone wrong :)"

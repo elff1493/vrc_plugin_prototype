@@ -91,6 +91,9 @@ class SendF(Node):
     op_name = "sendf"
     inputs = ("data", "address", "port")
     outputs = ()
+    input_slots = {"address":"text.text_line",
+                   "port":"text.line_num"
+                   }
     description = "send float to the given address "
     osc: OscManager
     def eval(self, data):
@@ -105,6 +108,9 @@ class SendI(Node):
     full_name = "int > osc"
     op_name = "sendi"
     inputs = ("data", "address", "port")
+    input_slots = {"address":"text.text_line",
+                   "port":"text.line_num"
+                   }
     outputs = ()
     description = "send integer to the given address "
 
@@ -116,8 +122,11 @@ class SendI(Node):
 class ReceiveI(Node):
     full_name = "osc > integer"
     op_name = "receivei"
-    inputs = ("address",)
+    inputs = ("address", "port")
     outputs = ("data",)
+    input_slots = {"address":"text.text_line",
+                   "port":"text.line_num"
+                   }
     description = "receive osc int from default osc connection "
     osc: OscManager
     def eval(self, data):
@@ -131,8 +140,11 @@ class ReceiveI(Node):
 class ReceiveF(Node):
     full_name = "osc > float"
     op_name = "receivef"
-    inputs = ("address",)
+    inputs = ("address", "port")
     outputs = ("data",)
+    input_slots = {"address":"text.text_line",
+                   "port":"text.line_num"
+                   }
     description = "receive osc float from default osc connection "
     osc: OscManager
     def eval(self, data):

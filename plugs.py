@@ -1,7 +1,7 @@
 from PyQt5 import QtGui, QtCore
 from PyQt5.QtCore import QRectF, Qt, QMimeData, QByteArray, QDataStream, QIODevice, pyqtProperty
 from PyQt5.QtGui import QColor, QPen, QBrush, QTransform, QDrag
-from PyQt5.QtWidgets import QGraphicsItem, QLabel, QVBoxLayout, QFrame
+from PyQt5.QtWidgets import QGraphicsItem, QLabel, QVBoxLayout, QFrame, QHBoxLayout
 
 from wires import Line
 
@@ -81,20 +81,26 @@ class PlugSlot(QFrame):
         #p = self.mapToScene(event.pos())
         #n.set_pos((p.x(), p.y()))
 
+    def set_content(self, content):
+        #self.layout.removeWidget(self.contents)
+        self.layout.addWidget(content)
+
 
 class PlugContent(QFrame):
     full_name = ""
     op_name = ""
+    default = None
 
     def __init__(self, parent, name, showroom=False):
         super(PlugContent, self).__init__(parent=parent)
         self.name = name
         self.showroom = showroom
         self.inside_of = parent
-        self.layout = QVBoxLayout()
+
+        self.layout = QHBoxLayout()
         self.layout.setContentsMargins(0, 0, 0, 0)
         self.setLayout(self.layout)
-        w = self.init()
+        w = self.init(self.name)
         self.setAcceptDrops(True)
 
         if type(w) is not tuple:
@@ -102,21 +108,23 @@ class PlugContent(QFrame):
         for i in w:
             self.layout.addWidget(i)
         if showroom:
-            print("transparent")
             self.setMouseTracking(True)
-            #self.setAttribute(Qt.WA_TransparentForMouseEvents, True)
+        if not showroom:
+            parent.set_content(self)
 
-    def init(self):
+    def init(self, text):
         lable = QLabel(self.name)
         lable.setGeometry(0, 100, 100, 100)
         return lable
 
     def get_data(self):
-        return ""
+        raise NotImplementedError()
+
+    def set_data(self, data):
+        raise NotImplementedError()
 
     def mousePressEvent(self, event: QtGui.QMouseEvent) -> None:
         super(PlugContent, self).mousePressEvent(event)
-        print("clickd")
         if event.button() == Qt.LeftButton and self.showroom:
             print("drag start")
             drag = QDrag(self)

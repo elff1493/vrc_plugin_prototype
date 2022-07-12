@@ -9,7 +9,7 @@ class Test(SymbolInput):
     full_name = "test input"
     op_name = "test"
 
-    def init(self):
+    def init(self, text):
         self.text = QLineEdit()
         lable = QLabel()
         lable.setText("banaa")

@@ -1,4 +1,4 @@
-
+from plugs import SymbolInput
 
 class DuplicateSymbolError(Exception):
     pass
@@ -16,9 +16,15 @@ class Category:
 
     def register(self, symbol):
         """decrator for class register"""
+        if not symbol.full_name:
+            raise NotImplementedError("fullname not implemented in " + symbol.__class__.__name__)
+        if not symbol.op_name:
+            raise NotImplementedError("op_name not implemented in " + symbol.__class__.__name__)
+
         if symbol in self.symbols.values() or symbol.op_name in self.symbols:
             raise DuplicateSymbolError()
         self.symbols[symbol.op_name] = symbol
+
         return symbol
 
     def sub_group(self, name):
@@ -36,7 +42,7 @@ class Category:
         return root
 
     def __contains__(self, item):
-        return item in self.group
+        return item in self.symbols
 
     def __getitem__(self, item):
         return self.symbols[item]
