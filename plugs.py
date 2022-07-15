@@ -1,6 +1,9 @@
 from PyQt5 import QtGui, QtCore
-from PyQt5.QtCore import QRectF, Qt, QMimeData, QByteArray, QDataStream, QIODevice, pyqtProperty
+from PyQt5.QtCore import QRectF, Qt, QMimeData, QByteArray, QDataStream, QIODevice, pyqtProperty, QUrl, QObject
 from PyQt5.QtGui import QColor, QPen, QBrush, QTransform, QDrag
+from PyQt5.QtQml import QQmlContext
+from PyQt5.QtQuick import QQuickView
+from PyQt5.QtQuickWidgets import QQuickWidget
 from PyQt5.QtWidgets import QGraphicsItem, QLabel, QVBoxLayout, QFrame, QHBoxLayout
 
 from wires import Line
@@ -90,15 +93,19 @@ class PlugContent(QFrame):
     full_name = ""
     op_name = ""
     default = None
+    qml_url = ""
+
 
     def __init__(self, parent, name, showroom=False):
         super(PlugContent, self).__init__(parent=parent)
         self.name = name
         self.showroom = showroom
         self.inside_of = parent
+        self.qml: QQmlContext = None
 
         self.layout = QHBoxLayout()
         self.layout.setContentsMargins(0, 0, 0, 0)
+        self.layout.stretch(10)
         self.setLayout(self.layout)
         w = self.init(self.name)
         self.setAcceptDrops(True)
@@ -113,6 +120,10 @@ class PlugContent(QFrame):
             parent.set_content(self)
 
     def init(self, text):
+        if self.qml_url:
+            self.qml = QQuickWidget(self)
+            self.qml.setSource(QUrl(self.qml_url))
+            return self.qml
         lable = QLabel(self.name)
         lable.setGeometry(0, 100, 100, 100)
         return lable

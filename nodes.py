@@ -160,7 +160,6 @@ class UiNodeBace(QGraphicsItem):
 
     def resized(self):
         p = self.proxy.boundingRect()
-        print(p.width(), self.title_item.boundingRect().width())
         self.width = max((p.width(), self.title_item.boundingRect().width() + 2*self._text_offset)) + 2*self.edge_w
         self.height = p.height() + self.title_h + self.edge_w
 
@@ -260,9 +259,7 @@ class Node(SerializeJson):
         print(self, name)
 
     def init_gui(self, showroom):
-
         self.ui_node = UiNodeBace(self, showroom=showroom)
-
         self.scene.ui_scene.addItem(self.ui_node)
 
     def set_pos(self, pos):

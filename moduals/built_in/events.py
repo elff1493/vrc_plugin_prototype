@@ -10,28 +10,37 @@ events = Module("events")
 class OnClick(Node):
     full_name = "on click"
     op_name = "click"
-    inputs = ()
+    inputs = ("do_tick",)
     outputs = ("tick",)
+    input_slots = {"do_tick": "bools.toggle"
+                   }
     description = "even node click eval the node dag (debuging node)"
     tick = 0
 
     def eval(self, data):
-        self.tick += 1
+        if data.do_tick:
+            self.tick += 1
+        else:
+            self.tick = 0
+
         return Result(tick=self.tick)
 
     def click(self):
-        print("click")
         self.e.eval(self)
 
 @events.register
 class Tick(Node):
     full_name = "on tick"
     op_name = "tick"
-    inputs = ()
+    inputs = ("toggle",)
     outputs = ("tick",)
+    input_slots = {
+        "toggle":"bools.toggle"
+    }
     description = "even node click eval the node dag (debuging node)"
     tick = 0
-    def __init__(self, *args,showroom=False, **kwargs):
+
+    def __init__(self, *args, showroom=False, **kwargs):
         super(Tick, self).__init__(*args, showroom=showroom, **kwargs)
         self.timer = None
         if not showroom:
@@ -45,5 +54,10 @@ class Tick(Node):
         self.e.eval(self)
 
     def eval(self, data):
-        self.tick += 1
+        if data.toggle:
+            if not self.timer.isActive():
+                self.timer.start()
+            self.tick += 1
+        else:
+            self.timer.stop()
         return Result(tick=self.tick)

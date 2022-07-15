@@ -92,7 +92,7 @@ class SendF(Node):
     inputs = ("data", "address", "port")
     outputs = ()
     input_slots = {"address":"text.text_line",
-                   "port":"text.line_num"
+                   "port":"text.port"
                    }
     description = "send float to the given address "
     osc: OscManager
@@ -109,7 +109,7 @@ class SendI(Node):
     op_name = "sendi"
     inputs = ("data", "address", "port")
     input_slots = {"address":"text.text_line",
-                   "port":"text.line_num"
+                   "port":"text.port"
                    }
     outputs = ()
     description = "send integer to the given address "
@@ -125,7 +125,7 @@ class ReceiveI(Node):
     inputs = ("address", "port")
     outputs = ("data",)
     input_slots = {"address":"text.text_line",
-                   "port":"text.line_num"
+                   "port":"text.port"
                    }
     description = "receive osc int from default osc connection "
     osc: OscManager
@@ -143,7 +143,7 @@ class ReceiveF(Node):
     inputs = ("address", "port")
     outputs = ("data",)
     input_slots = {"address":"text.text_line",
-                   "port":"text.line_num"
+                   "port":"text.port"
                    }
     description = "receive osc float from default osc connection "
     osc: OscManager

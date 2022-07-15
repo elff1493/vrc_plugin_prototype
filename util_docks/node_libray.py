@@ -71,7 +71,6 @@ class PickNodeScene(QGraphicsScene):
                 node.set_pos(offset)
                 offset[0] += w
 
-            print(offset)
         super(PickNodeScene, self).drawForeground(painter, rect)
 
 class NodeLibraryList(QGraphicsView):

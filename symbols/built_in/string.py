@@ -26,14 +26,36 @@ class TextBasic(SymbolInput):
 
 
 @text.register
-class TextNumber(SymbolInput):
-    full_name = "number input"
-    op_name = "line_num"
+class PortNumber(SymbolInput):
+    full_name = "port input"
+    op_name = "port"
     default = "6000"
     def init(self, text):
 
         self.text = QLineEdit()
         self.text.setValidator(QIntValidator(0, 65535))
+        lable = QLabel()
+        lable.setText(text)
+        lable.setGeometry(0, 100, 100, 100)
+        return lable, self.text
+
+    def get_data(self):
+        return self.text.text()
+
+    def set_data(self, data):
+        self.text.setText(data)
+
+
+
+@text.register
+class TextNumber(SymbolInput):
+    full_name = "number input"
+    op_name = "line_num"
+    default = "0"
+    def init(self, text):
+
+        self.text = QLineEdit()
+        self.text.setValidator(QIntValidator())
         lable = QLabel()
         lable.setText(text)
         lable.setGeometry(0, 100, 100, 100)
