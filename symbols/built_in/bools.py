@@ -16,11 +16,7 @@ class Toggle(SymbolInput):
     qml_url = "resources/qml/toggle_symbol.qml"
 
     def get_data(self):
-        return ""
-        #print(self.qml.engine().rootContext().children()[0].ContextProperty("position"))
-        #return self.qml.engine().rootContext().children()[0].ContextProperty("position") > 0.5
-
+        return self.qml.rootObject().property("position") > 0.5
     def set_data(self, data):
-        pass
-        #temp =  self.qml.engine().rootContext()
-        #temp.children[0].setContextProperty("position", int(data))
+        self.qml.rootObject().setProperty("position", float(data))
+

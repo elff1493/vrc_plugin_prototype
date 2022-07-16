@@ -101,7 +101,7 @@ class PlugContent(QFrame):
         self.name = name
         self.showroom = showroom
         self.inside_of = parent
-        self.qml: QQmlContext = None
+        self.qml = None
 
         self.layout = QHBoxLayout()
         self.layout.setContentsMargins(0, 0, 0, 0)

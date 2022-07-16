@@ -12,8 +12,6 @@ from util_docks.port_scan import PortScan
 from util_docks.console import Console
 
 
-
-
 class DagEditor(QWidget):
     def __init__(self, parent):
         super().__init__(parent)

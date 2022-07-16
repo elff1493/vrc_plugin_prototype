@@ -12,19 +12,19 @@ class Evaluator:
         for i in self.spawn:
             self.eval(i)
 
-    def _eval_node(self, node, data_stack, call_stack):
+    def _eval_node(self, node, data_stack, call_stack) -> bool:
 
         data_node = data_stack[node]
         for n in node.outputs:
             if n.node is None:
                 node.set_flag("missing data output")
-                return
+                return False
 
         args = Arguments()
         for d, name in zip(data_node.inputs, node.inputs):
             if d is None:
                 node.set_flag("missing data input")
-                return
+                return False
             args[name.name] = d
         result = node.eval(args)
         data_node.has_eval = True
@@ -43,6 +43,7 @@ class Evaluator:
                     data_stack[next_node] = Data(next_node)
                     call_stack.append(next_node)
                     #pointer += 1
+        return True
 
     def eval(self, spawn_node):
         call_stack = [spawn_node]
@@ -88,7 +89,8 @@ class Evaluator:
                             return
 
             else:
-                self._eval_node(node, data_stack, call_stack)
+                if not self._eval_node(node, data_stack, call_stack):
+                    return
 
 
 class Arguments(dict):
