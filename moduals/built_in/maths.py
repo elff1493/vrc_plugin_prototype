@@ -56,6 +56,9 @@ class Divide(Node):
     full_name = "divide"
     op_name = "div"
     inputs = ("a", "b")
+    input_slots = {"a": "text.line_num",
+                   "b": "text.line_num"
+                   }
     outputs = ("result",)
     description = "takes inputs a and b and return a divided by b"
     def eval(self, data):
@@ -71,6 +74,9 @@ class Exponentiation(Node):
     full_name = "exponentiation"
     op_name = "pow"
     inputs = ("a", "b")
+    input_slots = {"a": "text.line_num",
+                   "b": "text.line_num"
+                   }
     outputs = ("result",)
 
     def eval(self, data):

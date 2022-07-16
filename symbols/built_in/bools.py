@@ -17,6 +17,7 @@ class Toggle(SymbolInput):
 
     def get_data(self):
         return self.qml.rootObject().property("position") > 0.5
+
     def set_data(self, data):
         self.qml.rootObject().setProperty("position", float(data))
 
