@@ -1,7 +1,8 @@
-from PyQt5.QtGui import QIntValidator
+from PyQt5.QtGui import QIntValidator, QDoubleValidator
 from PyQt5.QtWidgets import QLabel, QLineEdit
 
-from symbols.symbols import Category, SymbolInput
+from plugs import SymbolInput
+from symbols.symbols import Category
 
 text = Category("text")
 
@@ -55,14 +56,14 @@ class TextNumber(SymbolInput):
     def init(self, text):
 
         self.text = QLineEdit()
-        self.text.setValidator(QIntValidator())
+        self.text.setValidator(QDoubleValidator())
         lable = QLabel()
         lable.setText(text)
         lable.setGeometry(0, 100, 100, 100)
         return lable, self.text
 
     def get_data(self):
-        return self.text.text()
+        return float(self.text.text())
 
     def set_data(self, data):
         self.text.setText(data)

@@ -6,25 +6,33 @@ from PyQt5.QtQuick import QQuickView
 from PyQt5.QtQuickWidgets import QQuickWidget
 from PyQt5.QtWidgets import QGraphicsItem, QLabel, QVBoxLayout, QFrame, QHBoxLayout
 
+from symbols.symbols import Category
 from wires import Line
 
 
 class Plug:
     IN = 0
     OUT = 1
-    def __init__(self, node, inout=0, index=0, name="unknown plug", _type=None):
+    def __init__(self, node, inout=0, index=0, name="unknown plug", _type=None, interface=""):
         self.node = node
         self.inout = inout
-        self.ui_plug = None
-        self.ui_symbol_slot = None
+        self.ui_plug = UiPlug(self.node.ui_node, self)
+
         self.type = _type
         self.name = name
-        self.anchor = 0, 0
+
         self.padding = 20
         self.index = index
         self.next_plug = None
         self.line = None
         self.symbol = None
+        if inout:
+            symbol = node.__class__.output_slots.get(name, "")
+        else:
+            symbol = node.__class__.input_slots.get(name, "")
+
+        self.ui_symbol_slot = PlugSlot(self.node.ui_node.content, self, inout=inout, content=symbol)
+        self.node.ui_node.add_ui_plug(self.ui_plug, self.ui_symbol_slot)
 
     def set_line(self, line=None):
         if self.line:
@@ -38,22 +46,32 @@ class Plug:
 class PlugSlot(QFrame):
     IN = 0
     OUT = 1
-    def __init__(self, parent, name, inout=IN):
+    def __init__(self, parent, plug, inout=IN, content=""):
         super(PlugSlot, self).__init__()
         self.layout = QVBoxLayout()
         self.layout.setContentsMargins(0, 0, 0, 0)
         self.layout.setSpacing(0)
         self.layout.stretch(10)
-        self._inout = 0
+        self._inout = inout
         self.inout = inout
         self.setLayout(self.layout)
-        self.name = name
+        self.plug = plug
+        self.name = plug.name
         self.contents = None
-        self.contents = SymbolInput(self, name)  if not inout else SymbolOutput(self, name)
+
+        if content:
+            sym = Category.get_symbol(content)
+            if sym:
+                self.set_content(sym(self, plug.name))
+                if not (sym.default is None):
+                    self.contents.set_data(sym.default)
+            else:
+                self.set_content(SymbolInput(self, plug.name) if not inout else SymbolOutput(self, plug.name))
+        else:
+            self.set_content(SymbolInput(self, plug.name) if not inout else SymbolOutput(self, plug.name))
         self.layout.addWidget(self.contents)
         self.setAutoFillBackground(True)
         self.setAcceptDrops(True)
-        #self.show()
 
     @pyqtProperty(int)
     def inout(self):
@@ -85,8 +103,15 @@ class PlugSlot(QFrame):
         #n.set_pos((p.x(), p.y()))
 
     def set_content(self, content):
-        #self.layout.removeWidget(self.contents)
+        self.layout.removeWidget(self.contents)
+        self.contents = content
         self.layout.addWidget(content)
+
+    def update_plug_pos(self, w):
+        x = w
+        y = abs(self.pos().y() + self.plug.node.ui_node.proxy.pos().y())
+        self.plug.ui_plug.setPos(x if self._inout else 0, y)
+
 
 
 class PlugContent(QFrame):
@@ -176,8 +201,10 @@ class UiPlug(QGraphicsItem):
         self.outline = QColor("#ff000000")
         self._pen = QPen(self.outline, 1)
         self._brush = QBrush(self.bg_color)
-        self.anchor = anchor
-        self.setPos(*anchor)
+
+        #self.plug.node.ui_node.plugs.append(self)
+        # self.anchor = anchor
+        # self.setPos(*anchor)
         self.setFlag(QGraphicsItem.ItemIsSelectable)
 
     def paint(self, painter: QtGui.QPainter, option, widget=None) -> None:
@@ -205,7 +232,7 @@ class UiPlug(QGraphicsItem):
             self.plug.node.scene.current_line = None
             p = event.scenePos()
             p = p.x(), p.y()
-            p = self.scene().itemAt(*p, QTransform())
+            p: UiPlug = self.scene().itemAt(*p, QTransform())
             if type(p) is UiPlug:
                 if l.plug.inout:
                     l = Line(self.plug.node.scene, l.plug, p.plug)

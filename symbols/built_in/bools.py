@@ -2,7 +2,9 @@ from PyQt5.QtGui import QIntValidator
 from PyQt5.QtQuick import QQuickView
 from PyQt5.QtWidgets import QLineEdit
 
-from symbols.symbols import Category, SymbolInput
+from plugs import SymbolInput
+from symbols.symbols import Category
+
 
 bools = Category("bools")
 

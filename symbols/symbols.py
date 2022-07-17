@@ -1,4 +1,5 @@
-from plugs import SymbolInput
+#from plugs import SymbolInput
+
 
 class DuplicateSymbolError(Exception):
     pass

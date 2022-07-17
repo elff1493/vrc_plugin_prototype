@@ -59,35 +59,35 @@ class NodeInside(QFrame):
         self.layout.setContentsMargins(0, 0, 0, 0)
         self.layout.setSpacing(2)
         self.setLayout(self.layout)
-        self.slots = []
+        # self.slots = []
 
-        slot = node.node.__class__.input_slots
-        for i in node.inputs:
-            n = PlugSlot(self, i.plug.name, inout=PlugSlot.IN)
-            i.plug.ui_symbol_slot = n
-            if i.plug.name in slot:
-                sym = Category.get_symbol(slot[i.plug.name])
-                if sym:
-                    n.contents.setParent(None)
-                    n.contents = sym(n, i.plug.name)
-                    if not (sym.default is None):
-                        n.contents.set_data(sym.default)
-                else:
-                    print("symbol not found")
-            self.layout.addWidget(n)
-            self.slots.append(n)
-
-        slot = node.node.__class__.output_slots
-        for i in node.outputs:
-            n = PlugSlot(self, i.plug.name, inout=PlugSlot.OUT)
-            i.plug.ui_symbol_slot = n
-            if i.plug.name in slot:
-                sym = Category.get_symbol(i.plug.op_code)
-                if sym:
-                    n.contents.setParent(None)
-                    n.contents = sym(n, i.plug.name)
-            self.layout.addWidget(n)
-            self.slots.append(n)
+        # slot = node.node.__class__.input_slots
+        # for i in node.inputs:
+        #     n = PlugSlot(self, i.plug, inout=PlugSlot.IN, )
+        #     i.plug.ui_symbol_slot = n
+        #     if i.plug.name in slot:
+        #         sym = Category.get_symbol(slot[i.plug.name])
+        #         if sym:
+        #             n.contents.setParent(None)
+        #             n.contents = sym(n, i.plug.name)
+        #             if not (sym.default is None):
+        #                 n.contents.set_data(sym.default)
+        #         else:
+        #             print("symbol not found")
+        #     self.layout.addWidget(n)
+        #     self.slots.append(n)
+        #
+        # slot = node.node.__class__.output_slots
+        # for i in node.outputs:
+        #     n = PlugSlot(self, i.plug, inout=PlugSlot.OUT)
+        #     i.plug.ui_symbol_slot = n
+        #     if i.plug.name in slot:
+        #         sym = Category.get_symbol(i.plug.op_code)
+        #         if sym:
+        #             n.contents.setParent(None)
+        #             n.contents = sym(n, i.plug.name)
+        #     self.layout.addWidget(n)
+        #     self.slots.append(n)
 
 
 class UiNodeBace(QGraphicsItem):
@@ -128,25 +128,25 @@ class UiNodeBace(QGraphicsItem):
         self.proxy = QGraphicsProxyWidget(self)
         self.proxy.geometryChanged.connect(self.resized)
         self.proxy.setFlag(QGraphicsItem.ItemSendsGeometryChanges, True)
+        self.plugs = []
+        # self.inputs = []
+        # self.outputs = []
 
-        self.inputs = []
-        self.outputs = []
-
-        offset = 0
-        for x, i in enumerate(self.node.inputs):
-
-            anchor = 0, self.height - (2*self.edge_w+offset)
-            offset += i.padding
-            i.ui_plug = UiPlug(self, i, anchor)  # todo add a gui init
-            self.inputs.append(i.ui_plug)
-
-        offset = 0
-        for x, i in enumerate(self.node.outputs):
-
-            anchor = self.width, self.height - (2*self.edge_w + offset)
-            offset += i.padding
-            i.ui_plug = UiPlug(self, i, anchor)
-            self.outputs.append(i.ui_plug)
+        # offset = 0
+        # for x, i in enumerate(self.node.inputs):
+        #
+        #     anchor = 0, self.height - (2*self.edge_w+offset)
+        #     offset += i.padding
+        #     i.ui_plug = UiPlug(self, i, anchor)  # todo add a gui init
+        #     self.inputs.append(i.ui_plug)
+        #
+        # offset = 0
+        # for x, i in enumerate(self.node.outputs):
+        #
+        #     anchor = self.width, self.height - (2*self.edge_w + offset)
+        #     offset += i.padding
+        #     i.ui_plug = UiPlug(self, i, anchor)
+        #     self.outputs.append(i.ui_plug)
 
         self.content = NodeInside(self)
         self.content.setGeometry(self.edge_w, self.title_h + 4,  # + self.edge_w,
@@ -162,6 +162,7 @@ class UiNodeBace(QGraphicsItem):
         p = self.proxy.boundingRect()
         self.width = max((p.width(), self.title_item.boundingRect().width() + 2*self._text_offset)) + 2*self.edge_w
         self.height = p.height() + self.title_h + self.edge_w
+        self.plugs_pos(self.width)
 
     def update_lines(self):
         for i in self.node.inputs + self.node.outputs:
@@ -226,6 +227,14 @@ class UiNodeBace(QGraphicsItem):
         if event.button() == Qt.LeftButton:
             self.node.click()
 
+    def plugs_pos(self, w):
+        for i in self.plugs:
+            i.plug.ui_symbol_slot.update_plug_pos(w)
+
+    def add_ui_plug(self, plug, symbol):
+        self.plugs.append(plug)
+        self.content.layout.addWidget(symbol)
+
 
 class Node(SerializeJson):
     full_name = "invalid node"  # display name of the node
@@ -248,11 +257,12 @@ class Node(SerializeJson):
 
         self.scene.add_node(self)
 
+        self.init_gui(showroom)
+
         self.inputs = [Plug(self, index=index, name=i) for index, i in inputs]
         self.outputs = [Plug(self, index=index, name=i, inout=Plug.OUT) for index, i in outputs]
 
-        self.init_gui(showroom)
-
+        self.ui_node.resized()
         self.title = title or self.full_name
 
     def set_flag(self, name):
