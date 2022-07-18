@@ -25,8 +25,6 @@ class DagEditor(QWidget):
         self.layout.addWidget(self.view)
         self.setLayout(self.layout)
 
-        #self.make_debug_nodes()
-
         self.rmenu = QMenu(self)
         for i in node_moduals.Module.libraries.values():
             m = self.rmenu.addMenu(i.name)
@@ -52,16 +50,15 @@ class MainWindow(QMainWindow):
         super().__init__(parent)
         self.menu = self.menuBar()
         self.menu_init()
-        self.setWindowIcon(QtGui.QIcon('logo.png'))
+        self.setWindowIcon(QtGui.QIcon('resources/images/logo.png'))
         self.setWindowTitle("new window")
         self.setGeometry(1100, 200, 800, 600)
         self.layout = QVBoxLayout()
-        self.layout.setContentsMargins(0, 0, 0, 0)        #self.setWindowIcon(QtGui.QIcon('icon.ico'))x
+        self.layout.setContentsMargins(0, 0, 0, 0)
         self.setLayout(self.layout)
         self.editor = DagEditor(self)
         self.setCentralWidget(self.editor)
         self.init_docks()
-        #self.layout.addWidget(self.editor)
 
     def init_docks(self):
         self.dock = [NodeLibrary(), PortScan(), Console()]
@@ -103,7 +100,7 @@ class MainWindow(QMainWindow):
 class MainApp(QApplication):
     def __init__(self):
         super().__init__([])
-        qss = "stylesheet.qss"
+        qss = "resources/qss/stylesheet.qss"
         with open(qss, "r") as f:
             self.setStyleSheet(f.read())
 

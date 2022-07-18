@@ -58,7 +58,7 @@ class Evaluator:
                 while data_stack[node].empty:
                     i = data_stack[node].empty.pop()
                     next_node = node.inputs[i[0]].next_plug
-                    if next_node and not i[1].name in node.input_slots:
+                    if next_node:
                         next_node = next_node.node
                         if next_node not in data_stack.keys():
                             data_stack[next_node] = Data(next_node)

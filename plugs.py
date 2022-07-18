@@ -4,7 +4,7 @@ from PyQt5.QtGui import QColor, QPen, QBrush, QTransform, QDrag
 from PyQt5.QtQml import QQmlContext
 from PyQt5.QtQuick import QQuickView
 from PyQt5.QtQuickWidgets import QQuickWidget
-from PyQt5.QtWidgets import QGraphicsItem, QLabel, QVBoxLayout, QFrame, QHBoxLayout
+from PyQt5.QtWidgets import QGraphicsItem, QLabel, QVBoxLayout, QFrame, QHBoxLayout, QLayout
 
 from symbols.symbols import Category
 from wires import Line
@@ -49,6 +49,7 @@ class PlugSlot(QFrame):
     def __init__(self, parent, plug, inout=IN, content=""):
         super(PlugSlot, self).__init__()
         self.layout = QVBoxLayout()
+        self.layout.setSizeConstraint(QLayout.SetFixedSize)
         self.layout.setContentsMargins(0, 0, 0, 0)
         self.layout.setSpacing(0)
         self.layout.stretch(10)
@@ -147,7 +148,12 @@ class PlugContent(QFrame):
     def init(self, text):
         if self.qml_url:
             self.qml = QQuickWidget(self)
+
+            self.qml.rootContext().setContextProperty("symbol_name", self.name)
+            self.qml.setResizeMode(1)
             self.qml.setSource(QUrl(self.qml_url))
+            if self.qml.errors():
+                raise Exception(self.qml.errors()[0].toString())
             return self.qml
         lable = QLabel(self.name)
         lable.setGeometry(0, 100, 100, 100)

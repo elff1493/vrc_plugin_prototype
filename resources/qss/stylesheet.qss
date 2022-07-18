@@ -12,6 +12,7 @@ NodeInside QLabel {color:#e0e000;
     border-color: black;
     padding: 5px;
 }
+QQuickWidget {background: transparent;}
 NodeInside PlugSlot {
     background: transparent;
 }
