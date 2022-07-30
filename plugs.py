@@ -64,8 +64,7 @@ class PlugSlot(QFrame):
             sym = Category.get_symbol(content)
             if sym:
                 self.set_content(sym(self, plug.name))
-                if not (sym.default is None):
-                    self.contents.set_data(sym.default)
+
             else:
                 self.set_content(SymbolInput(self, plug.name) if not inout else SymbolOutput(self, plug.name))
         else:
@@ -118,11 +117,12 @@ class PlugSlot(QFrame):
 class PlugContent(QFrame):
     full_name = ""
     op_name = ""
+    full_op_name = ""
     default = None
     qml_url = ""
 
 
-    def __init__(self, parent, name, showroom=False):
+    def __init__(self, parent, name, showroom=False, data=None):
         super(PlugContent, self).__init__(parent=parent)
         self.name = name
         self.showroom = showroom
@@ -135,6 +135,10 @@ class PlugContent(QFrame):
         self.setLayout(self.layout)
         w = self.init(self.name)
         self.setAcceptDrops(True)
+        if data:
+            self.set_data(data)
+        elif self.default:
+            self.set_data(self.default)
 
         if type(w) is not tuple:
             w = (w,)
@@ -191,11 +195,19 @@ class PlugContent(QFrame):
 
 
 class SymbolInput(PlugContent):
-    pass
+    def get_data(self):
+        return None
+
+    def set_data(self, data):
+        return
 
 
 class SymbolOutput(PlugContent):
-    pass
+    def get_data(self):
+        return None
+
+    def set_data(self, data):
+        return
 
 
 class UiPlug(QGraphicsItem):

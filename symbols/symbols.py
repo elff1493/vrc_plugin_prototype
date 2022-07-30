@@ -13,6 +13,7 @@ class Category:
             raise DuplicateSymbolError()
         self.group[name] = self
         self.name = name
+        self.full_name = name
         self.symbols = {}
 
     def register(self, symbol):
@@ -24,8 +25,9 @@ class Category:
 
         if symbol in self.symbols.values() or symbol.op_name in self.symbols:
             raise DuplicateSymbolError()
-        self.symbols[symbol.op_name] = symbol
 
+        self.symbols[symbol.op_name] = symbol
+        symbol.full_op_name = self.full_name + "." + symbol.op_name
         return symbol
 
     def sub_group(self, name):

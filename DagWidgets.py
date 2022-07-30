@@ -8,7 +8,7 @@ from nodes import make_curve, SerializeJson, Node
 import json
 from collections import OrderedDict
 from wires import Line, UiLine
-
+from moduals.moduals import Module
 
 class Scene(SerializeJson):
     def __init__(self):
@@ -71,7 +71,9 @@ class Scene(SerializeJson):
         hashs = {}
         self.size = data["width"], data["height"]
         for i in data["nodes"]:
-            Node(self).from_json(i, hashs)
+
+            node = Module.get_node(i["type"])
+            node(self).from_json(i, hashs)
         for i in data["wires"]:
             Line.json_init(self, i, hashs)
 

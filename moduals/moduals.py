@@ -13,6 +13,7 @@ class Module:
         self.libraries[name] = self
         self.name = name
         self.nodes = {}
+        self.full_name = name
 
     def register(self, node):
         """decrator for class register"""
@@ -24,6 +25,7 @@ class Module:
         if node in self.nodes.values() or node.op_name in self.nodes:
             raise DuplicateNodeError()
         self.nodes[node.op_name] = node
+        node.full_op_name = self.full_name + "." + node.op_name
         return node
 
     def sub_modual(self, name):

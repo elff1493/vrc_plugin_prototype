@@ -14,7 +14,7 @@ class TextBasic(SymbolInput):
     def init(self, text):
         self.text = QLineEdit()
         lable = QLabel()
-        lable.setText(text + " test")
+        lable.setText(text)
         lable.setGeometry(0, 100, 100, 100)
         return lable, self.text
 

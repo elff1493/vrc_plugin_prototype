@@ -239,6 +239,7 @@ class UiNodeBace(QGraphicsItem):
 class Node(SerializeJson):
     full_name = "invalid node"  # display name of the node
     op_name = "null_node"  # internal name of the node
+    full_op_name = None # the full path of the modual eg math.add, set on register
     inputs = ()  # list of name of input to the node
     input_slots = {}  # key is name of input and value is op code of what symbol is...
     # the default for that input type if key exist a default will be provided
@@ -295,19 +296,35 @@ class Node(SerializeJson):
         self.ui_node.title(t)
 
     def to_json(self):
+        sym = [i.ui_symbol_slot.contents for i in self.inputs]
+        out = {}
+        for i, j in zip(self.__class__.inputs, sym):
+            d = j.get_data()
+            if j.full_op_name != self.input_slots.get(i) or d != j.default:
+                out[i] = j.full_op_name, d
 
         return OrderedDict((
             ("id", self.id),
+            ("type", self.full_op_name),
             ("title", self._title),
             ("x", self.ui_node.scenePos().x()),
-            ("y", self.ui_node.scenePos().y())
+            ("y", self.ui_node.scenePos().y()),
+            ("symbols", out)
         ))
 
     def from_json(self, data, hashs=None):
         self.id = data["id"]
         hashs[self.id] = self
-        self.title = data["title"]
+        if "title" in data:
+            self.title = data["title"]
         self.ui_node.setPos(data["x"], data["y"])
+        if "symbols" in data:
+            for k, (name, value) in data["symbols"].items():
+                index = self.__class__.inputs.index(k)
+                sym = Category.get_symbol(name)
+                if sym:
+                    plug = self.inputs[index]
+                    plug.ui_symbol_slot.set_content(sym(plug.ui_symbol_slot, plug.name, data=value))
 
     def click(self):
         pass
