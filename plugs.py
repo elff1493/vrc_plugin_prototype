@@ -1,6 +1,7 @@
 from PyQt5 import QtGui, QtCore
-from PyQt5.QtCore import QRectF, Qt, QMimeData, QByteArray, QDataStream, QIODevice, pyqtProperty, QUrl, QObject
-from PyQt5.QtGui import QColor, QPen, QBrush, QTransform, QDrag
+from PyQt5.QtCore import QRectF, Qt, QMimeData, QByteArray, QDataStream, QIODevice, pyqtProperty, QUrl, QObject, \
+    pyqtSlot
+from PyQt5.QtGui import QColor, QPen, QBrush, QTransform, QDrag, QSurfaceFormat
 from PyQt5.QtQml import QQmlContext
 from PyQt5.QtQuick import QQuickView
 from PyQt5.QtQuickWidgets import QQuickWidget
@@ -18,6 +19,7 @@ class Plug:
         self.inout = inout
         self.ui_plug = UiPlug(self.node.ui_node, self)
 
+        self.last_data = None
         self.type = _type
         self.name = name
 
@@ -127,6 +129,9 @@ class PlugContent(QFrame):
         self.name = name
         self.showroom = showroom
         self.inside_of = parent
+        self.node = None
+        if type(parent) is PlugSlot:
+            self.node = parent.plug.node
         self.qml = None
 
         self.layout = QHBoxLayout()
@@ -152,8 +157,13 @@ class PlugContent(QFrame):
     def init(self, text):
         if self.qml_url:
             self.qml = QQuickWidget(self)
+            form = self.qml.format()
 
+            form.setSamples(16)
+
+            #self.qml.setFormat(form)
             self.qml.rootContext().setContextProperty("symbol_name", self.name)
+            self.qml.rootContext().setContextProperty("self", self)
             self.qml.setResizeMode(1)
             self.qml.setSource(QUrl(self.qml_url))
             if self.qml.errors():
@@ -193,6 +203,10 @@ class PlugContent(QFrame):
             drag.exec_(Qt.MoveAction)
             #paint.end()
 
+    @pyqtSlot()
+    def on_changed(self):
+        if self.node:
+            self.node.symbol_changed()
 
 class SymbolInput(PlugContent):
     def get_data(self):

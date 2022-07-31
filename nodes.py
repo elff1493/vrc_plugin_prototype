@@ -52,42 +52,11 @@ def make_curve(pos1, pos2, inout=0):
 class NodeInside(QFrame):
     def __init__(self, node):
         super().__init__()
-        #self.setWindowFlags(QtCore.Qt.FramelessWindowHint)
-        #self.setAttribute(QtCore.Qt.WA_TranslucentBackground)
         self.node = node
         self.layout = QVBoxLayout()
         self.layout.setContentsMargins(0, 0, 0, 0)
         self.layout.setSpacing(2)
         self.setLayout(self.layout)
-        # self.slots = []
-
-        # slot = node.node.__class__.input_slots
-        # for i in node.inputs:
-        #     n = PlugSlot(self, i.plug, inout=PlugSlot.IN, )
-        #     i.plug.ui_symbol_slot = n
-        #     if i.plug.name in slot:
-        #         sym = Category.get_symbol(slot[i.plug.name])
-        #         if sym:
-        #             n.contents.setParent(None)
-        #             n.contents = sym(n, i.plug.name)
-        #             if not (sym.default is None):
-        #                 n.contents.set_data(sym.default)
-        #         else:
-        #             print("symbol not found")
-        #     self.layout.addWidget(n)
-        #     self.slots.append(n)
-        #
-        # slot = node.node.__class__.output_slots
-        # for i in node.outputs:
-        #     n = PlugSlot(self, i.plug, inout=PlugSlot.OUT)
-        #     i.plug.ui_symbol_slot = n
-        #     if i.plug.name in slot:
-        #         sym = Category.get_symbol(i.plug.op_code)
-        #         if sym:
-        #             n.contents.setParent(None)
-        #             n.contents = sym(n, i.plug.name)
-        #     self.layout.addWidget(n)
-        #     self.slots.append(n)
 
 
 class UiNodeBace(QGraphicsItem):
@@ -132,21 +101,6 @@ class UiNodeBace(QGraphicsItem):
         # self.inputs = []
         # self.outputs = []
 
-        # offset = 0
-        # for x, i in enumerate(self.node.inputs):
-        #
-        #     anchor = 0, self.height - (2*self.edge_w+offset)
-        #     offset += i.padding
-        #     i.ui_plug = UiPlug(self, i, anchor)  # todo add a gui init
-        #     self.inputs.append(i.ui_plug)
-        #
-        # offset = 0
-        # for x, i in enumerate(self.node.outputs):
-        #
-        #     anchor = self.width, self.height - (2*self.edge_w + offset)
-        #     offset += i.padding
-        #     i.ui_plug = UiPlug(self, i, anchor)
-        #     self.outputs.append(i.ui_plug)
 
         self.content = NodeInside(self)
         self.content.setGeometry(self.edge_w, self.title_h + 4,  # + self.edge_w,
@@ -265,6 +219,9 @@ class Node(SerializeJson):
 
         self.ui_node.resized()
         self.title = title or self.full_name
+
+    def symbol_changed(self):
+        pass
 
     def set_flag(self, name):
         print(self, name)

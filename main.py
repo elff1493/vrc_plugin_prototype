@@ -1,6 +1,7 @@
 from PyQt5 import QtGui
 from PyQt5.QtCore import Qt
 from PyQt5.QtWidgets import QApplication, QWidget, QVBoxLayout, QMainWindow, QAction, QMenu
+from asyncqt import QEventLoop
 
 from DagWidgets import DagView, Scene
 
@@ -10,6 +11,8 @@ import symbols.built_in as node_symbols
 from util_docks.node_libray import NodeLibrary
 from util_docks.port_scan import PortScan
 from util_docks.console import Console
+import asyncio
+import sys
 
 
 class DagEditor(QWidget):
@@ -113,7 +116,16 @@ class MainApp(QApplication):
 
 def main():
     app = MainApp()
-    app.start()
+    loop = QEventLoop(app)
+    asyncio.set_event_loop(loop)
+
+    with loop:
+        sys.exit(loop.run_forever())
+
+    #app.start()
+    print("start")
+    #asyncio.run(loop())
+    print("stoped")
 
 
 if __name__ == "__main__":

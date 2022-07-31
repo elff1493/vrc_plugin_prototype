@@ -1,3 +1,8 @@
+import re
+
+from pythonosc.dispatcher import Dispatcher
+from pythonosc.osc_server import BlockingOSCUDPServer, AsyncIOOSCUDPServer
+
 from evaluator import Result
 from nodes import Node
 from moduals.moduals import Module
@@ -6,24 +11,111 @@ import psutil
 from os import getenv
 from pathlib import Path
 import json
+import asyncio
 import pythonosc
+
+from pythonosc.udp_client import SimpleUDPClient
+
 osc = Module("vrc_osc")
 
 
 class OscManager:
-    def __init__(self):
-        self.servers = {} # key : (addr, port)
-        self.clients = {}
+    obj = None
 
-    def get_default_address(self): # todo untested
+    def __init__(self):
+        self.servers = {}  # key : (addr, port)
+        self.clients = {}
+        self.nodes = {}
+
+    @classmethod
+    def instance(cls):
+        if cls.obj:
+            return cls.obj
+        cls.obj = OscManager()
+        return cls.obj
+
+    def get_default_address(self):  # todo untested
         vrc = filter(lambda p: p.name == "vrchat.exe", psutil.process_iter())
 
     def add_lissner(self, addr, port):
         pass
 
-    def send(self, type, add, port, data):
-        if (add, port) not in self.servers:
-            pythonosc.a
+    def send(self, type, add, ip, port, data):
+        if (ip, port) not in self.servers:
+            c = SimpleUDPClient(ip, int(port))
+            self.clients[(ip, port)] = c
+        c = self.clients[(ip, port)]
+        c.send_message(add, float(data))
+
+    def handler(self, addr, args, *data):
+        print("called")
+        node, ip, port = args
+        server = self.servers.get((ip, port))
+        if not server:
+            return
+
+        nodes = None
+        escaped_address_pattern = re.escape(addr)
+        pattern = escaped_address_pattern.replace('\\?', '\\w?')
+
+        pattern = pattern.replace('\\*', '[\w|\+]*')
+        pattern = pattern + '$'
+        patterncompiled = re.compile(pattern)
+
+        for ad, val in server[2].items():
+            if (patterncompiled.match(ad) or (('*' in ad) and re.match(ad.replace('*', '[^/]*?/*'), addr))):
+                nodes = val
+                break
+        if not nodes:
+            return
+        for i in nodes:
+            i.buffer = data[0]
+        if nodes:
+            nodes[0].e.eval(nodes[0]) # todo add multi eval to evaluator
+
+    def register(self, node, addr, ip, port):
+        port = int(port)
+        print("regitser")
+        if not addr:
+            return
+        if node in self.nodes:
+            d, h, _ = self.nodes[node]
+            if h.args == (node, ip, port):
+                return
+            else:
+                print("unmap", h)
+                d.unmap(self.nodes[node][2], h)
+
+        if not ip or not port:
+            print("no ip or port")
+            return
+
+
+        if (ip, port) not in self.servers:
+            print("start serve")
+            dispatcher = Dispatcher()
+            #dispatcher.set_default_handler(lambda: print("defult test"))
+            loop = asyncio.get_event_loop()
+            server = AsyncIOOSCUDPServer((ip, port), dispatcher, loop)
+            self.servers[(ip, port)] = (dispatcher, server, {}) # k:v, addr:[node]
+
+            asyncio.ensure_future(server.create_serve_endpoint(), loop=loop)
+
+            print("serving")
+
+        dispatcher, server, conn = self.servers[(ip, port)]
+
+        hand = dispatcher.map(addr, self.handler, node, ip, port)
+
+        print(addr, "mapped")
+
+        self.nodes[node] = (dispatcher, hand, addr)
+
+        if addr not in conn:
+            conn[addr] = []
+
+        conn[addr].append(node)
+
 
 
 class AvatarParm:
@@ -57,12 +149,9 @@ class VrcAvatar:
         self.parameters = parameters
         self.id = _id
 
-
     @classmethod
     def from_path(cls, path):
         with open(path, "r", encoding='utf-8-sig') as file:
-
-
             data = json.load(file)
 
         par = data["parameters"]
@@ -85,20 +174,22 @@ def get_avatars():
     return output
 
 
+
 @osc.register
 class SendF(Node):
     full_name = "float > osc"
     op_name = "sendf"
-    inputs = ("data", "address", "port")
+    inputs = ("data", "address", "ip", "port")
     outputs = ()
-    input_slots = {"address":"text.text_line",
-                   "port":"text.port"
+    input_slots = {"address": "text.osc_path",
+                   "port": "text.port",
+                   "ip": "ip.ip_add"
                    }
     description = "send float to the given address "
-    osc: OscManager
-    def eval(self, data):
+    osc: OscManager = OscManager
 
-        self.osc.send("f", data["address"], data["port"], data["data"])
+    def eval(self, data):
+        self.osc.instance().send("f", data["address"], data["ip"], data["port"], data["data"])
 
         return Result()
 
@@ -107,46 +198,62 @@ class SendF(Node):
 class SendI(Node):
     full_name = "int > osc"
     op_name = "sendi"
-    inputs = ("data", "address", "port")
-    input_slots = {"address":"text.text_line",
-                   "port":"text.port"
-                   }
+    inputs = ("data", "address", "ip", "port")
     outputs = ()
+    input_slots = {"address": "text.osc_path",
+                   "port": "text.port",
+                   "ip": "ip.ip_add"
+                   }
     description = "send integer to the given address "
 
     def eval(self, data):
         out = data["a"] + data["b"]
         return Result()
 
+
 @osc.register
 class ReceiveI(Node):
     full_name = "osc > integer"
     op_name = "receivei"
-    inputs = ("address", "port")
+    inputs = ("address", "ip", "port")
     outputs = ("data",)
-    input_slots = {"address":"text.text_line",
-                   "port":"text.port"
+    input_slots = {"address": "text.osc_path",
+                   "port": "text.port",
+                   "ip": "ip.ip_add"
                    }
     description = "receive osc int from default osc connection "
-    osc: OscManager
+    osc: OscManager = OscManager
+
+    def __init__(self, *args, **kwargs):
+        super(ReceiveI, self).__init__(*args, **kwargs)
+        self.buffer = 0
+
     def eval(self, data):
-        out = data["a"] + data["b"]
-        return Result(data=out)
+        return Result(data=self.buffer)
+
+    def symbol_changed(self):
+        o = self.osc.instance()
+        if type(self.inputs[0]) is not str:
+            o.register(self,
+                       *(self.inputs[i].ui_symbol_slot.contents.get_data() or self.inputs[i].last_data for i in range(3)))
 
     def update(self):
         pass
+
 
 @osc.register
 class ReceiveF(Node):
     full_name = "osc > float"
     op_name = "receivef"
-    inputs = ("address", "port")
-    outputs = ("data",)
-    input_slots = {"address":"text.text_line",
-                   "port":"text.port"
+    inputs = ("address", "ip", "port")
+    outputs = ()
+    input_slots = {"address": "text.osc_path",
+                   "port": "text.port",
+                   "ip": "ip.ip_add"
                    }
     description = "receive osc float from default osc connection "
     osc: OscManager
+
     def eval(self, data):
         out = data["a"] + data["b"]
         return Result(data=out)

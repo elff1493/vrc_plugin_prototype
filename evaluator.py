@@ -4,13 +4,24 @@ class Evaluator:
     def __init__(self):
         self.batches = []
 
-
     def thread(self):
         pass
 
     def worker(self):
         for i in self.spawn:
             self.eval(i)
+
+    @classmethod
+    def get_node_data(cls, node):
+        out = [None for i in node.inputs]
+        for i, n in enumerate(node.inputs):
+            next_node = node.inputs[i[0]].next_plug
+            if next_node:
+                pass
+            else:
+                if n.name in node.input_slots:
+                    out[i] = node.inputs[i].ui_symbol_slot.contents.get_data()
+
 
     def _eval_node(self, node, data_stack, call_stack) -> bool:
 
@@ -45,16 +56,15 @@ class Evaluator:
                     #pointer += 1
         return True
 
-    def eval(self, spawn_node):
+    def eval(self, spawn_node, data_stack=None):
         call_stack = [spawn_node]
-        data_stack = {}
-        #pointer = 0
+        if not data_stack:
+            data_stack = {}
         while call_stack:
             node = call_stack[0]
             if node not in data_stack.keys(): # probs shouldt use a dict, todo work out smarter way
                 data_stack[node] = Data(node)
             if data_stack[node].empty:
-                #i = data_stack[node].empty
                 while data_stack[node].empty:
                     i = data_stack[node].empty.pop()
                     next_node = node.inputs[i[0]].next_plug
@@ -64,26 +74,24 @@ class Evaluator:
                             data_stack[next_node] = Data(next_node)
                         if not data_stack[next_node].has_eval:
                             call_stack.insert(0, next_node)
-                            #pointer += 1
                     else:
                         if i[1].name in node.input_slots:
                             data_stack[node].inputs[i[0]] = node.inputs[i[0]].ui_symbol_slot.contents.get_data()
                         else:
                             node.set_flag("missing input")
                             return
+
             elif data_stack[node].has_eval:
                 #make input dict
                 call_stack.pop(0)
-                #pointer -= 1
                 for i in node.outputs:
                     if i.next_plug:
                         if i.next_plug.node not in data_stack:
                             data_stack[i.next_plug.node] = Data(node)
-
                             call_stack.append(i.next_plug.node)
-                            #pointer += 1
                         try:
                             data_stack[i.next_plug.node].inputs[i.next_plug.index] = data_stack[i.node].outputs[i.name]
+                            i.last_data = data_stack[i.node].outputs[i.name]
                         except KeyError:
                             node.set_flag("unknown node output")
                             return
@@ -121,14 +129,3 @@ class Result:
 
     def __setattr__(self, attr, value):
         self.output[attr] = value
-
-
-
-
-
-
-
-
-
-
-
