@@ -236,6 +236,11 @@ class Node(SerializeJson):
     def eval(self, data):
         pass
 
+    def get_symbol_data(self, index):
+        if type(self.inputs[index]) is str:
+            return None
+        return self.inputs[index].ui_symbol_slot.contents.get_data()
+
     def remove(self):
         self.scene.remove_node(self)
         for i in self.inputs + self.outputs:
@@ -263,7 +268,6 @@ class Node(SerializeJson):
         return OrderedDict((
             ("id", self.id),
             ("type", self.full_op_name),
-            ("title", self._title),
             ("x", self.ui_node.scenePos().x()),
             ("y", self.ui_node.scenePos().y()),
             ("symbols", out)

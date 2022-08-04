@@ -1,0 +1,153 @@
+{
+   "id": 109501552,
+   "width": 10000,
+   "height": 10000,
+   "nodes": [
+      {
+         "id": 167141920,
+         "type": "debug.print",
+         "x": 182.25000000000003,
+         "y": -69.25000000000003,
+         "symbols": {
+            "data": [
+               "",
+               null
+            ]
+         }
+      },
+      {
+         "id": 167144680,
+         "type": "events.tick",
+         "x": -720.25,
+         "y": 19.25,
+         "symbols": {
+            "toggle": [
+               "bools.toggle",
+               false
+            ],
+            "rate": [
+               "number.whole_num",
+               100
+            ]
+         }
+      },
+      {
+         "id": 167145064,
+         "type": "maths.add",
+         "x": -256.0,
+         "y": -1.0000000000000284,
+         "symbols": {
+            "a": [
+               "text.line_num",
+               0.0
+            ],
+            "b": [
+               "text.line_num",
+               0.0
+            ]
+         }
+      },
+      {
+         "id": 167143384,
+         "type": "maths.mul",
+         "x": -407.5,
+         "y": 191.25,
+         "symbols": {
+            "a": [
+               "text.line_num",
+               0.0
+            ],
+            "b": [
+               "text.line_num",
+               -1.0
+            ]
+         }
+      },
+      {
+         "id": 167143528,
+         "type": "consts.data_split",
+         "x": -407.5,
+         "y": 51.75,
+         "symbols": {
+            "data": [
+               "",
+               null
+            ]
+         }
+      },
+      {
+         "id": 337922632,
+         "type": "maths.add",
+         "x": -36.75000000000004,
+         "y": -77.75000000000004,
+         "symbols": {
+            "a": [
+               "text.line_num",
+               0.0
+            ],
+            "b": [
+               "text.line_num",
+               0.0
+            ]
+         }
+      },
+      {
+         "id": 337923088,
+         "type": "time.timestamp",
+         "x": -316.2499999999999,
+         "y": -287.4999999999999,
+         "symbols": {}
+      }
+   ],
+   "wires": [
+      {
+         "id": 167145328,
+         "start": 0,
+         "end": 0,
+         "start_node": 167144680,
+         "end_node": 167143528
+      },
+      {
+         "id": 337921408,
+         "start": 1,
+         "end": 0,
+         "start_node": 167143528,
+         "end_node": 167143384
+      },
+      {
+         "id": 337922152,
+         "start": 0,
+         "end": 1,
+         "start_node": 167143384,
+         "end_node": 167145064
+      },
+      {
+         "id": 337922032,
+         "start": 0,
+         "end": 0,
+         "start_node": 167143528,
+         "end_node": 167145064
+      },
+      {
+         "id": 167143456,
+         "start": 0,
+         "end": 1,
+         "start_node": 167145064,
+         "end_node": 337922632
+      },
+      {
+         "id": 337922992,
+         "start": 0,
+         "end": 0,
+         "start_node": 337922632,
+         "end_node": 167141920
+      },
+      {
+         "id": 337923280,
+         "start": 0,
+         "end": 0,
+         "start_node": 337923088,
+         "end_node": 337922632
+      }
+   ]
+}

@@ -15,6 +15,7 @@ class Scene(SerializeJson):
         super(Scene, self).__init__()
         self.nodes = []
         self.wires = []
+        self.file = ""
         self.size = 10000, 10000
         self.current_line = None
         self.ui_scene = UiScene(self, parent=None)
@@ -38,20 +39,24 @@ class Scene(SerializeJson):
         with open(file, "w") as file:
             json.dump(self.to_json(), file, indent=3)
 
+    def save(self):
+        if self.file:
+            self.save_to_file(self.file)
+            return True
+        return False
+
     def load_file(self, file):
+        self.file = file
         self.clear()
         with open(file, "r") as file:
             d = json.load(file)
             self.from_json(d)
 
     def clear(self):
-        print(self.nodes)
         for i in self.nodes.copy():
             i.remove()
-            print("removed", i)
         for i in self.wires.copy():
             i.remove()
-        print("+"*20)
 
     def to_json(self) -> dict:
         nodes, lines = [], []

@@ -32,26 +32,35 @@ class OnClick(Node):
 class Tick(Node):
     full_name = "on tick"
     op_name = "tick"
-    inputs = ("toggle",)
+    inputs = ("toggle", "rate")
     outputs = ("tick",)
     input_slots = {
-        "toggle":"bools.toggle"
+        "toggle":"bools.toggle",
+        "rate": "number.whole_num"
     }
     description = "even node click eval the node dag (debuging node)"
     tick = 0
 
     def __init__(self, *args, showroom=False, **kwargs):
+        self.timer = QTimer()
         super(Tick, self).__init__(*args, showroom=showroom, **kwargs)
-        self.timer = None
-        if not showroom:
-            timer = QTimer()
-            timer.setInterval(100)
-            timer.timeout.connect(self.spawn_event)
-            timer.start()
-            self.timer = timer
+        self.timer.setInterval(100)
+        self.timer.timeout.connect(self.spawn_event)
+        #timer.start()
+
+        if showroom:
+            self.timer.disconnect()
 
     def spawn_event(self):
         self.e.eval(self)
+
+    def symbol_changed(self):
+        print(self.get_symbol_data(0), self.get_symbol_data(1))
+        self.timer.setInterval(int(self.get_symbol_data(1) or 100))
+        if self.get_symbol_data(0):
+            self.timer.start()
+        else:
+            self.timer.stop()
 
     def eval(self, data):
         if data.toggle:

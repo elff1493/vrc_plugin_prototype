@@ -8,4 +8,7 @@ Switch {
     background: Rectangle {
     color: red
     }
+    onToggled: {
+        self.on_changed()
+    }
  }

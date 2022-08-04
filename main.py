@@ -1,6 +1,8 @@
-from PyQt5 import QtGui
+from PyQt5 import QtGui, QtCore
 from PyQt5.QtCore import Qt
-from PyQt5.QtWidgets import QApplication, QWidget, QVBoxLayout, QMainWindow, QAction, QMenu
+from PyQt5.QtGui import QCursor
+from PyQt5.QtWidgets import QApplication, QWidget, QVBoxLayout, QMainWindow, QAction, QMenu, QFileDialog
+
 from asyncqt import QEventLoop
 
 from DagWidgets import DagView, Scene
@@ -27,7 +29,7 @@ class DagEditor(QWidget):
 
         self.layout.addWidget(self.view)
         self.setLayout(self.layout)
-
+        self.debug_count = 0
         self.rmenu = QMenu(self)
         for i in node_moduals.Module.libraries.values():
             m = self.rmenu.addMenu(i.name)
@@ -46,6 +48,21 @@ class DagEditor(QWidget):
                 p = self.scene.ui_scene.view.mapToScene(a0.pos())
                 n.set_pos((p.x(), p.y()))
         super(DagEditor, self).contextMenuEvent(a0)
+
+    def keyPressEvent(self, event):
+        super(DagEditor, self).keyPressEvent(event)
+        return
+        if event.key() == QtCore.Qt.Key_Q:
+            self.debug_spawn()
+        event.accept()
+
+    def debug_spawn(self):
+        print(self.debug_count)
+        self.debug_count += 1
+        n = node_moduals.Module.get_node("time.seconds_epoc")
+        n = n(self.scene)
+        p = self.scene.ui_scene.view.mapToScene(self.mapFromGlobal( QCursor.pos()))
+        n.set_pos((p.x(), p.y()))
 
 
 class MainWindow(QMainWindow):
@@ -80,12 +97,34 @@ class MainWindow(QMainWindow):
         a.setText("&Console")
         self.window_menu.addAction(a) # todo make loop
 
+    def open_file(self):
+        file = QFileDialog.getOpenFileName(caption="open file")
+        if file[0]:
+            self.editor.scene.load_file(file[0])
+
+    def save(self):
+        if not self.editor.scene.save():
+            self.save_as()
+
+    def save_as(self):
+        file = QFileDialog.getSaveFileName(caption="save file")
+        if file[0]:
+            self.editor.scene.save_to_file(file[0])
+
     def menu_init(self):
         m = self.menuBar()
+
         self.file_menu = m.addMenu("&File")
-        action = QAction("&Load", self)
-        action.setShortcut("Ctrl+p")
-        action.triggered.connect(self.load_test)
+        action = QAction("&Open", self)
+        action.triggered.connect(self.open_file)
+        self.file_menu.addAction(action)
+
+        action = QAction("&Save", self)
+        action.triggered.connect(self.save)
+        self.file_menu.addAction(action)
+
+        action = QAction("&Save as", self)
+        action.triggered.connect(self.save_as)
         self.file_menu.addAction(action)
 
         self.edit_menu = m.addMenu("&Edit")
@@ -122,10 +161,6 @@ def main():
     with loop:
         sys.exit(loop.run_forever())
 
-    #app.start()
-    print("start")
-    #asyncio.run(loop())
-    print("stoped")
 
 
 if __name__ == "__main__":

@@ -45,7 +45,7 @@ class OscManager:
             c = SimpleUDPClient(ip, int(port))
             self.clients[(ip, port)] = c
         c = self.clients[(ip, port)]
-        c.send_message(add, float(data))
+        c.send_message(add, float(data) if type == "f" else int(data))
 
     def handler(self, addr, args, *data):
         print("called")
@@ -177,7 +177,7 @@ def get_avatars():
 
 @osc.register
 class SendF(Node):
-    full_name = "float > osc"
+    full_name = " send float"
     op_name = "sendf"
     inputs = ("data", "address", "ip", "port")
     outputs = ()
@@ -196,7 +196,7 @@ class SendF(Node):
 
 @osc.register
 class SendI(Node):
-    full_name = "int > osc"
+    full_name = "send int"
     op_name = "sendi"
     inputs = ("data", "address", "ip", "port")
     outputs = ()
@@ -207,13 +207,14 @@ class SendI(Node):
     description = "send integer to the given address "
 
     def eval(self, data):
-        out = data["a"] + data["b"]
+        self.osc.instance().send("i", data["address"], data["ip"], data["port"], int(data["data"]))
+
         return Result()
 
 
 @osc.register
 class ReceiveI(Node):
-    full_name = "osc > integer"
+    full_name = "receive integer"
     op_name = "receivei"
     inputs = ("address", "ip", "port")
     outputs = ("data",)
@@ -243,7 +244,7 @@ class ReceiveI(Node):
 
 @osc.register
 class ReceiveF(Node):
-    full_name = "osc > float"
+    full_name = "receive float"
     op_name = "receivef"
     inputs = ("address", "ip", "port")
     outputs = ()
@@ -252,12 +253,21 @@ class ReceiveF(Node):
                    "ip": "ip.ip_add"
                    }
     description = "receive osc float from default osc connection "
-    osc: OscManager
+    osc: OscManager = OscManager
+
+    def __init__(self, *args, **kwargs):
+        super(ReceiveF, self).__init__(*args, **kwargs)
+        self.buffer = 0
 
     def eval(self, data):
-        out = data["a"] + data["b"]
-        return Result(data=out)
+        return Result(data=self.buffer)
 
+    def symbol_changed(self):
+        o = self.osc.instance()
+        if type(self.inputs[0]) is not str:
+            o.register(self,
+                       *(self.inputs[i].ui_symbol_slot.contents.get_data() or self.inputs[i].last_data for i in
+                         range(3)))
     def update(self):
         pass
 

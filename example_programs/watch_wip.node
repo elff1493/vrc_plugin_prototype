@@ -1,0 +1,54 @@
+{
+   "id": 98351808,
+   "width": 10000,
+   "height": 10000,
+   "nodes": [
+      {
+         "id": 155056280,
+         "type": "vrc_osc.sendf",
+         "title": " send float",
+         "x": 21.0,
+         "y": -134.0,
+         "symbols": {
+            "data": [
+               "",
+               null
+            ],
+            "address": [
+               "text.osc_path",
+               "/avatar/parameters/time"
+            ]
+         }
+      },
+      {
+         "id": 155058032,
+         "type": "events.tick",
+         "title": "on tick",
+         "x": -350.0,
+         "y": -174.0,
+         "symbols": {
+            "toggle": [
+               "bools.toggle",
+               false
+            ]
+         }
+      },
+      {
+         "id": 332313192,
+         "type": "time.seconds_epoc",
+         "title": "time",
+         "x": -257.0,
+         "y": -38.0,
+         "symbols": {}
+      }
+   ],
+   "wires": [
+      {
+         "id": 332314200,
+         "start": 0,
+         "end": 0,
+         "start_node": 332313192,
+         "end_node": 155056280
+      }
+   ]
+}

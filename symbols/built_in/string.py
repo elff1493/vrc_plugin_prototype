@@ -68,9 +68,11 @@ class TextNumber(SymbolInput):
         return float(self.text.text())
 
     def set_data(self, data):
-        self.text.setText(data)
+        self.text.setText(str(data))
 
 input_osc_endpoints = [
+    "/avatar/",
+    "/input/",
     "/input/MoveForward",
     "/input/MoveBackward",
     "/input/MoveLeft",
@@ -96,12 +98,11 @@ input_osc_endpoints = [
     "/input/QuickMenuToggleLeft",
     "/input/QuickMenuToggleRight",
     "/input/ToggleSitStand",
-    "/input/AFKToggle"
+    "/input/AFKToggle",
+    "/avatar/parameters/",
+    "/avatar/change"
 ]
-class LineEdit(QLineEdit):
-    def __init__(self, callback):
-        super(LineEdit, self).__init__()
-        self.textChanged.connect(lambda: self.test())
+
 @text.register
 class OscPath(SymbolInput):
     full_name = "osc path"
