@@ -13,26 +13,26 @@ class Evaluator:
 
     @classmethod
     def get_node_data(cls, node):
-        out = [None for i in node.inputs]
-        for i, n in enumerate(node.inputs):
-            next_node = node.inputs[i[0]].next_plug
+        out = [None for i in node.input_plugs]
+        for i, n in enumerate(node.input_plugs):
+            next_node = node.input_plugs[i[0]].next_plug
             if next_node:
                 pass
             else:
                 if n.name in node.input_slots:
-                    out[i] = node.inputs[i].ui_symbol_slot.contents.get_data()
+                    out[i] = node.input_plugs[i].ui_symbol_slot.contents.get_data()
 
 
     def _eval_node(self, node, data_stack, call_stack) -> bool:
 
         data_node = data_stack[node]
-        for n in node.outputs:
+        for n in node.output_plugs:
             if n.node is None:
                 node.set_flag("missing data output")
                 return False
 
         args = Arguments()
-        for d, name in zip(data_node.inputs, node.inputs):
+        for d, name in zip(data_node.input_plugs, node.input_plugs):
             if d is None:
                 node.set_flag("missing data input")
                 return False
@@ -40,8 +40,8 @@ class Evaluator:
         result = node.eval(args)
         data_node.has_eval = True
         for k, v in result.output.items():
-            data_node.outputs[k] = v
-        for i in node.outputs:
+            data_node.output_plugs[k] = v
+        for i in node.output_plugs:
             if not i.next_plug:
                 node.set_flag("missing output")
                 # return
@@ -67,7 +67,7 @@ class Evaluator:
             if data_stack[node].empty:
                 while data_stack[node].empty:
                     i = data_stack[node].empty.pop()
-                    next_node = node.inputs[i[0]].next_plug
+                    next_node = node.input_plugs[i[0]].next_plug
                     if next_node:
                         next_node = next_node.node
                         if next_node not in data_stack.keys():
@@ -76,7 +76,7 @@ class Evaluator:
                             call_stack.insert(0, next_node)
                     else:
                         if i[1].name in node.input_slots:
-                            data_stack[node].inputs[i[0]] = node.inputs[i[0]].ui_symbol_slot.contents.get_data()
+                            data_stack[node].inputs[i[0]] = node.input_plugs[i[0]].ui_symbol_slot.contents.get_data()
                         else:
                             node.set_flag("missing input")
                             return
@@ -84,7 +84,7 @@ class Evaluator:
             elif data_stack[node].has_eval:
                 #make input dict
                 call_stack.pop(0)
-                for i in node.outputs:
+                for i in node.output_plugs:
                     if i.next_plug:
                         if i.next_plug.node not in data_stack:
                             data_stack[i.next_plug.node] = Data(node)
@@ -112,9 +112,9 @@ class Arguments(dict):
 
 class Data:
     def __init__(self, node):
-        self.inputs = [None for i in node.inputs]
+        self.inputs = [None for i in node.input_plugs]
         self.empty = list(enumerate(node.inputs))
-        self.outputs = ((i, None) for i in node.outputs)
+        self.outputs = ((i, None) for i in node.output_plugs)
         self.outputs = dict(self.outputs)
         self.has_eval = False
 

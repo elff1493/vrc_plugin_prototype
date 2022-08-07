@@ -117,9 +117,10 @@ class UiNodeBace(QGraphicsItem):
         self.width = max((p.width(), self.title_item.boundingRect().width() + 2*self._text_offset)) + 2*self.edge_w
         self.height = p.height() + self.title_h + self.edge_w
         self.plugs_pos(self.width)
+        self.update_lines()
 
     def update_lines(self):
-        for i in self.node.inputs + self.node.outputs:
+        for i in self.node.input_plugs + self.node.output_plugs:
             if i.line:
                 i.line.ui_line.update_pos()
 
@@ -211,11 +212,13 @@ class Node(SerializeJson):
         self.showroom = showroom
 
         self.scene.add_node(self)
+        self.input_plugs = []
+        self.output_plugs = []
 
         self.init_gui(showroom)
 
-        self.inputs = [Plug(self, index=index, name=i) for index, i in inputs]
-        self.outputs = [Plug(self, index=index, name=i, inout=Plug.OUT) for index, i in outputs]
+        self.input_plugs = [Plug(self, index=index, name=i) for index, i in inputs]
+        self.output_plugs = [Plug(self, index=index, name=i, inout=Plug.OUT) for index, i in outputs]
 
         self.ui_node.resized()
         self.title = title or self.full_name
@@ -237,13 +240,13 @@ class Node(SerializeJson):
         pass
 
     def get_symbol_data(self, index):
-        if type(self.inputs[index]) is str:
+        if not self.input_plugs:
             return None
-        return self.inputs[index].ui_symbol_slot.contents.get_data()
+        return self.input_plugs[index].ui_symbol_slot.contents.get_data()
 
     def remove(self):
         self.scene.remove_node(self)
-        for i in self.inputs + self.outputs:
+        for i in self.input_plugs + self.output_plugs:
             i.set_line()
         self.scene.ui_scene.removeItem(self.ui_node)
         self.ui_node = None
@@ -258,7 +261,7 @@ class Node(SerializeJson):
         self.ui_node.title(t)
 
     def to_json(self):
-        sym = [i.ui_symbol_slot.contents for i in self.inputs]
+        sym = [i.ui_symbol_slot.contents for i in self.input_plugs]
         out = {}
         for i, j in zip(self.__class__.inputs, sym):
             d = j.get_data()
@@ -284,7 +287,7 @@ class Node(SerializeJson):
                 index = self.__class__.inputs.index(k)
                 sym = Category.get_symbol(name)
                 if sym:
-                    plug = self.inputs[index]
+                    plug = self.input_plugs[index]
                     plug.ui_symbol_slot.set_content(sym(plug.ui_symbol_slot, plug.name, data=value))
 
     def click(self):

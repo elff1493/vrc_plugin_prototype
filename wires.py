@@ -65,9 +65,11 @@ class Line(SerializeJson):
         ))
     @classmethod
     def json_init(cls, scene, data, hashs):
-        start, end = hashs[data["start_node"]], hashs[data["end_node"]]
-        start, end = start.outputs[data["start"]], end.inputs[data["end"]]
+        start_node, end_node = hashs[data["start_node"]], hashs[data["end_node"]]
+        start, end = start_node.output_plugs[data["start"]], end_node.input_plugs[data["end"]]
         l = Line(scene, start, end)
+        start_node.ui_node.update_lines()
+        end_node.ui_node.update_lines()
 
     def from_json(self, data, hashs=[]):
         pass
