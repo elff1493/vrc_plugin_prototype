@@ -130,13 +130,19 @@ class MainWindow(QMainWindow):
         self.edit_menu = m.addMenu("&Edit")
         self.window_menu = m.addMenu("&Window")
 
+        self.debug_menu = m.addMenu("&Debug")
+        action = QAction("&Test program", self)
+        action.setShortcut("")
+        action.triggered.connect(self.load_test)
+        self.debug_menu.addAction(action)
+
         self.dock_actions_menu = []
 
     def show_docked(self, index):
         self.dock[index].setVisible(not self.dock[index].isVisible())
 
     def load_test(self):
-        self.editor.scene.load_file("test.txt")
+        self.editor.scene.load_file("example_programs/gettime.node")
 
 
 class MainApp(QApplication):

@@ -185,6 +185,9 @@ class UiNodeBace(QGraphicsItem):
     def plugs_pos(self, w):
         for i in self.plugs:
             i.plug.ui_symbol_slot.update_plug_pos(w)
+        if len(self.plugs) == 1:
+            a = self.plugs[0].plug.ui_symbol_slot.size().height()
+            print()
 
     def add_ui_plug(self, plug, symbol):
         self.plugs.append(plug)
@@ -200,7 +203,7 @@ class Node(SerializeJson):
     # the default for that input type if key exist a default will be provided
     outputs = ()   # same for outputs
     output_slots = {}
-    description = "invalid node, somethings gone wrong :)"
+    description = "invalid node description, somethings gone wrong :)"
     e = Evaluator()
 
     def __init__(self, scene, inputs=None, outputs=None, title=None, showroom=False):

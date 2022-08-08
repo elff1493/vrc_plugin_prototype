@@ -111,10 +111,11 @@ class PlugSlot(QFrame):
 
     def update_plug_pos(self, w):
         x = w
-        y = abs(self.pos().y() + self.plug.node.ui_node.proxy.pos().y()) + self.size().height()/2
+        y = self.pos().y() + self.plug.node.ui_node.proxy.pos().y()
+        if 480 != self.size().height(): # todo, find root of problem, no badade fix
+            y += self.size().height()/2
 
         self.plug.ui_plug.setPos(x if self._inout else 0, y)
-
 
 
 class PlugContent(QFrame):
